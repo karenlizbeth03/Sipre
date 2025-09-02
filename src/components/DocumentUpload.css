@@ -1,0 +1,28 @@
+/* DocumentUpload.css */
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: white;
+  margin-top: 20px;
+}
+
+.upload-area:hover,
+.upload-area.dragging {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.upload-content p {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.upload-content span {
+  color: #666;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,40 @@
+/* Header.css */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #000000; /* Azul oscuro */
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.login-btn {
+  background: #f97316; /* Naranja */
+  border: none;
+  padding: 8px 16px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #ea580c; /* Más oscuro */
+}
+
+/* Para que el contenido no quede debajo del header */
+.page-content {
+  padding-top: 80px;
+}

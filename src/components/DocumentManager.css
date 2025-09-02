@@ -1,0 +1,61 @@
+/* DocumentManager.css */
+.document-manager {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+}
+
+.search-box input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.search-box button {
+  padding: 10px 15px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.search-box button:hover {
+  background: #5a6fd5;
+}
+
+.document-content {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  height: calc(100% - 80px);
+}
+
+.document-list-container {
+  flex: 0 0 350px;
+}
+
+.document-viewer-container {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
