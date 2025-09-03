@@ -33,7 +33,7 @@
 }
 
 .menu-item:hover {
-  background: #334155;
+  background: #f97316;
 }
 
 .active {
@@ -47,15 +47,15 @@
 }
 
 .level-1 {
-  background: #273c75;
+  background: #D17000;
 }
 
 .level-2 {
-  background: #3b5998;
+  background: #FF961F;
 }
 
 .level-3 {
-  background: #4c6ef5;
+  background: #FFC88A;
 }
 
 .dashboard-footer {

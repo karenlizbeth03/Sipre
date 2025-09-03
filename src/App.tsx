@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import Dashboard from './components/Dashboard'
-import DocumentManager from './components/DocumentManager'
+import Dashboard from './pages/Dashboard/Principal/Dashboard'
+import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager'
 import Home from './components/Home'
 import './App.css'
 
@@ -38,6 +38,7 @@ export type MenuOption =
   | 'busqueda-ticket'
   | 'reporte-ti-fechas'
   | 'reporte-ti-actividades'
+  | 'documentos'
 
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home')

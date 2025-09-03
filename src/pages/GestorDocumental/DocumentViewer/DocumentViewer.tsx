@@ -1,6 +1,6 @@
 // components/DocumentViewer.tsx
 import React from 'react'
-import type { Document } from './DocumentManager'
+import type { Document } from '../DocumentManager/DocumentManager'
 import './DocumentViewer.css'
 
 interface DocumentViewerProps {

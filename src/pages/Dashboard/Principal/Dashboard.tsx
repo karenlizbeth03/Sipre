@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import type { MenuOption } from '../App'
+import type { MenuOption } from '../../../App'
 import './Dashboard.css'
-import Header from './Header'
+import Header from '../../../components/Header/Header'
 
 interface DashboardProps {
   activeMenu: MenuOption
@@ -99,6 +99,13 @@ const menuItems: MenuItem[] = [
           { label: 'REPORTE TI ACTIVIDADES POR FECHAS', option: 'reporte-ti-actividades' }
         ]
       }
+    ]
+  }
+  ,
+  {
+    label: 'GESTOR DOCUMENTAL',
+    children: [
+      { label: 'DOCUMENTOS', option: 'documentos' }
     ]
   }
 ]

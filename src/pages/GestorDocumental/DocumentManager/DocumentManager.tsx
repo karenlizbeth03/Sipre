@@ -1,10 +1,10 @@
 // components/DocumentManager.tsx
 import React, { useState, useRef } from 'react'
-import DocumentList from './DocumentList'
-import DocumentUpload from './DocumentUpload'
-import DocumentViewer from './DocumentViewer'
+import DocumentList from '../DocumentList/DocumentList'
+import DocumentUpload from '../DocumentUpload/DocumentUpload'
+import DocumentViewer from '../DocumentViewer/DocumentViewer'
 import './DocumentManager.css'
-import Header from './Header'
+import Header from '../../../components/Header/Header'
 
 export interface Document {
   id: string
