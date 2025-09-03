@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Dashboard from './pages/Dashboard/Principal/Dashboard'
+import DashboardUser from './pages/Dashboard/Usuarios/Dashboard'
 import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager'
 import Home from './components/Home'
 import './App.css'
@@ -38,7 +39,7 @@ export type MenuOption =
   | 'busqueda-ticket'
   | 'reporte-ti-fechas'
   | 'reporte-ti-actividades'
-  | 'documentos'
+
 
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home')
@@ -49,6 +50,7 @@ function App() {
         return <Home />
       case 'documents':
         return <DocumentManager />
+      
       // Aquí puedes agregar más casos para otras opciones del menú
       default:
         return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>

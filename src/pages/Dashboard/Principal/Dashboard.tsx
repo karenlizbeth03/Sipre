@@ -105,7 +105,7 @@ const menuItems: MenuItem[] = [
   {
     label: 'GESTOR DOCUMENTAL',
     children: [
-      { label: 'DOCUMENTOS', option: 'documentos' }
+      { label: 'DOCUMENTOS', option: 'documents' }
     ]
   }
 ]

@@ -67,6 +67,7 @@ const DocumentManager: React.FC = () => {
 
   return (
     <div className="document-manager">
+      <p> <br /></p>
         <Header />
       <div className="page-content">
         <div className="document-header">
@@ -78,11 +79,12 @@ const DocumentManager: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button onClick={() => uploadRef.current?.triggerUpload()}>
+            <button className="subirdocs-btn" onClick={() => uploadRef.current?.triggerUpload()}>
               Subir Documentos
             </button>
           </div>
         </div>
+        
 
         <div className="document-content">
           <DocumentList
@@ -91,21 +93,23 @@ const DocumentManager: React.FC = () => {
             onDelete={handleDelete}
             onDownload={handleDownload}
           />
+          
 
           <div className="document-viewer-container">
             {selectedDocument ? (
               <DocumentViewer document={selectedDocument} />
             ) : (
               <div className="no-document-selected">
-                <p>Selecciona un documento para visualizarlo</p>
+                <p><center>Selecciona un documento para visualizarlo</center></p>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
+      <p></p>
+       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
     </div>
+    
   )
 }
 export default DocumentManager

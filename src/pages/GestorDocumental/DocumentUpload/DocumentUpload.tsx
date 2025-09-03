@@ -1,8 +1,8 @@
-// components/DocumentUpload.tsx
-import React, { useState, useImperativeHandle, forwardRef } from 'react'
+// DocumentUpload/DocumentUpload.tsx (versión mejorada)
+import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import './DocumentUpload.css'
 
-interface DocumentUploadProps {
+export interface DocumentUploadProps {
   onUpload: (files: FileList) => void
 }
 
@@ -12,62 +12,60 @@ export interface DocumentUploadHandle {
 
 const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
   ({ onUpload }, ref) => {
-    const [isDragging, setIsDragging] = useState(false)
-    const fileInputRef = React.useRef<HTMLInputElement>(null)
-
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    
     useImperativeHandle(ref, () => ({
       triggerUpload: () => {
         fileInputRef.current?.click()
       }
     }))
-
-    const handleDragOver = (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(true)
-    }
-
-    const handleDragLeave = (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-    }
-
-    const handleDrop = (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      if (e.dataTransfer.files.length > 0) {
-        onUpload(e.dataTransfer.files)
-      }
-    }
-
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
         onUpload(e.target.files)
         e.target.value = '' // Reset input
       }
     }
-
+    
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        onUpload(e.dataTransfer.files)
+      }
+    }
+    
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+    }
+    
     return (
-      <>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          multiple
-          style={{ display: 'none' }}
-        />
-        <div
-          className={`upload-area ${isDragging ? 'dragging' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <div className="upload-content">
-            <p>Arrastra documentos aquí o haz clic para seleccionar</p>
-            <span>Sube cualquier tipo de documento</span>
-          </div>
+      <div 
+        className="document-upload"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
+        <div className="upload-area">
+          <div className="upload-icon">📁</div>
+          <p>Arrastra y suelta archivos aquí o</p>
+          <button 
+            className="browse-btn"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Buscar archivos
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
         </div>
-      </>
+        {/* <div className="upload-info">
+          <p>Formatos soportados: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, imágenes</p>
+          <p>Límite máximo: 10MB por archivo</p>
+        </div> */}
+      </div>
     )
   }
 )

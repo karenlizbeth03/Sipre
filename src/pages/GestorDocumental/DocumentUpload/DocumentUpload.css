@@ -1,28 +1,51 @@
 /* DocumentUpload.css */
+.document-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .upload-area {
   border: 2px dashed #ccc;
-  border-radius: 10px;
-  padding: 40px;
+  border-radius: 8px;
+  padding: 30px;
   text-align: center;
-  cursor: pointer;
   transition: all 0.3s;
-  background: white;
-  margin-top: 20px;
+  background-color: #ffffff;
 }
 
-.upload-area:hover,
-.upload-area.dragging {
-  border-color: #667eea;
-  background: #f0f4ff;
+.upload-area:hover, .upload-area.drag-over {
+  border-color: #000000;
+  background-color: #d1d1cf;
 }
 
-.upload-content p {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #333;
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
 }
 
-.upload-content span {
+.upload-area p {
+  margin: 10px 0;
   color: #666;
-  font-size: 0.9rem;
+}
+
+.browse-btn {
+  padding: 8px 16px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.browse-btn:hover {
+  background-color: #5b5858;
+}
+
+.upload-info {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
 }
