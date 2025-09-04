@@ -149,7 +149,8 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) => {
       <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>
 
       <div className="dashboard-footer">
-        <p>Inicio de Sesión</p>
+        <button className='login-btn'>Inicio de Sesión</button>
+        
       </div>
     </div>
   )

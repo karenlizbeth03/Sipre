@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
-import Dashboard from './pages/Dashboard/Principal/Dashboard'
-import DashboardUser from './pages/Dashboard/Usuarios/Dashboard'
-import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager'
-import Home from './components/Home'
-import './App.css'
+import React, { useState } from 'react';
+import Dashboard from './pages/Dashboard/Principal/Dashboard';
+import DashboardUser from './pages/Dashboard/Usuarios/Dashboard';
+import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager';
+import Home from './components/Home';
+import Login from './components/Login/Login';
+import './App.css';
 
 // Ahora MenuOption incluye todas las opciones posibles
 export type MenuOption =
@@ -38,31 +39,59 @@ export type MenuOption =
   | 'tickets-soporte-asignados'
   | 'busqueda-ticket'
   | 'reporte-ti-fechas'
-  | 'reporte-ti-actividades'
-
+  | 'reporte-ti-actividades';
 
 function App() {
-  const [activeMenu, setActiveMenu] = useState<MenuOption>('home')
+  const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
+
+  const handleLogin = (username: string, password: string) => {
+    // Lógica de autenticación básica
+    if (username === 'admin' && password === 'admin') {
+      setUserRole('admin');
+      setIsLoggedIn(true);
+    } else if (username === 'user' && password === 'user') {
+      setUserRole('user');
+      setIsLoggedIn(true);
+    } else {
+      alert('Credenciales incorrectas. Use admin/admin o user/user');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setActiveMenu('home');
+  };
 
   const renderContent = () => {
     switch (activeMenu) {
       case 'home':
-        return <Home />
+        return <Home />;
       case 'documents':
-        return <DocumentManager />
-      
+        return <DocumentManager />;
       // Aquí puedes agregar más casos para otras opciones del menú
       default:
-        return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>
+        return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }
-  }
+  };
 
   return (
     <div className="app">
-      <Dashboard activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
-      <main className="main-content">{renderContent()}</main>
+      {!isLoggedIn ? (
+        <Login onLogin={handleLogin} />
+      ) : (
+        <>
+          {userRole === 'admin' ? (
+            <Dashboard activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
+          ) : (
+            <DashboardUser activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
+          )}
+          <main className="main-content">{renderContent()}</main>
+        </>
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
