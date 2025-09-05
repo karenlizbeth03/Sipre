@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
+import Header from './components/Header/Header';
+import Login from './components/Login/Login';
 import Dashboard from './pages/Dashboard/Principal/Dashboard';
 import DashboardUser from './pages/Dashboard/Usuarios/Dashboard';
 import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager';
 import Home from './components/Home';
-import Login from './components/Login/Login';
 import './App.css';
 
-// Ahora MenuOption incluye todas las opciones posibles
 export type MenuOption =
   | 'home'
   | 'documents'
+  | 'ficha-usuario'
   | 'ruta-entregas'
   | 'datos-empresa'
   | 'roles-usuarios'
-  | 'ficha-usuario'
   | 'nuevo-ticket-marketing'
   | 'listado-tickets-marketing'
   | 'listado-tickets-asignados'
@@ -44,24 +44,35 @@ export type MenuOption =
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
+  const [userRole, setUserRole] = useState<'admin' | 'user' | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
 
+  // Mostrar login desde Header
+  const handleLoginClick = () => {
+    setShowLogin(true);
+  };
+
+  // Login exitoso
   const handleLogin = (username: string, password: string) => {
-    // Lógica de autenticación básica
     if (username === 'admin' && password === 'admin') {
       setUserRole('admin');
       setIsLoggedIn(true);
+      setShowLogin(false);
     } else if (username === 'user' && password === 'user') {
       setUserRole('user');
       setIsLoggedIn(true);
+      setShowLogin(false);
     } else {
       alert('Credenciales incorrectas. Use admin/admin o user/user');
     }
   };
 
+  // Cerrar sesión
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setUserRole(null);
     setActiveMenu('home');
+    setShowLogin(true); // opcional: mostrar login al cerrar sesión
   };
 
   const renderContent = () => {
@@ -70,7 +81,8 @@ function App() {
         return <Home />;
       case 'documents':
         return <DocumentManager />;
-      // Aquí puedes agregar más casos para otras opciones del menú
+      case 'ficha-usuario':
+        return <div>Contenido del Dashboard del usuario</div>;
       default:
         return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }
@@ -78,18 +90,20 @@ function App() {
 
   return (
     <div className="app">
-      {!isLoggedIn ? (
-        <Login onLogin={handleLogin} />
-      ) : (
-        <>
-          {userRole === 'admin' ? (
-            <Dashboard activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
-          ) : (
-            <DashboardUser activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
-          )}
-          <main className="main-content">{renderContent()}</main>
-        </>
+      <Header onLoginClick={handleLoginClick} />
+
+      {/* Login modal flotante si no está logueado */}
+      {!isLoggedIn && showLogin && <Login onLogin={handleLogin} />}
+
+      {/* Dashboard según rol */}
+      {isLoggedIn && userRole === 'admin' && (
+        <Dashboard activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
       )}
+      {isLoggedIn && userRole === 'user' && (
+        <DashboardUser activeMenu={activeMenu} setActiveMenu={setActiveMenu} onLogout={handleLogout} />
+      )}
+
+      <main className="main-content">{isLoggedIn && renderContent()}</main>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// components/Login.tsx
 import React, { useState } from 'react';
 import './Login.css';
 
@@ -16,25 +15,27 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="login-container"><center>
+    <div className="login-overlay">
       <div className="login-form">
         <h2>Iniciar Sesión</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Usuario:</label>
+            <label htmlFor="username">Usuario</label>
             <input
               type="text"
               id="username"
+              placeholder="Ingrese su usuario"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
+            <label htmlFor="password">Contraseña</label>
             <input
               type="password"
               id="password"
+              placeholder="Ingrese su contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -43,12 +44,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <button type="submit">Ingresar</button>
         </form>
         <div className="demo-credentials">
-          <p>Credenciales de demostración:</p>
-          <p>Admin: usuario: <strong>admin</strong>, contraseña: <strong>admin</strong></p>
-          <p>Usuario: usuario: <strong>user</strong>, contraseña: <strong>user</strong></p>
+          <p><strong>Credenciales de demostración:</strong></p>
+          <p>Admin: <strong>admin / admin</strong></p>
+          <p>Usuario: <strong>user / user</strong></p>
         </div>
       </div>
-      </center>
     </div>
   );
 };

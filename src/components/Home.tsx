@@ -5,7 +5,9 @@ import './Home.css'
 const Home: React.FC = () => {
   return (
     <div className="home">
-      <Header />
+      <Header onLoginClick={function (): void {
+        throw new Error('Function not implemented.')
+      } } />
 
       <div className="page-content">
         <div className="hero-section">

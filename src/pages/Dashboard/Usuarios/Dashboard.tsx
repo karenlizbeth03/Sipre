@@ -6,6 +6,7 @@ import Header from '../../../components/Header/Header'
 interface DashboardProps {
   activeMenu: MenuOption
   setActiveMenu: (option: MenuOption) => void
+  onLogout: () => void // ✅ agregamos la prop de logout
 }
 
 interface MenuItem {
@@ -26,7 +27,7 @@ const menuItems: MenuItem[] = [
   }
 ]
 
-const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) => {
+const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogout }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
 
   const toggleMenu = (label: string) => {
@@ -40,8 +41,9 @@ const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) 
       {items.map(item => (
         <li key={item.label}>
           <div
-            className={`menu-item ${item.children ? 'has-children' : ''} ${activeMenu === item.option ? 'active' : ''
-              }`}
+            className={`menu-item ${item.children ? 'has-children' : ''} ${
+              activeMenu === item.option ? 'active' : ''
+            }`}
             onClick={() =>
               item.children ? toggleMenu(item.label) : item.option && setActiveMenu(item.option)
             }
@@ -56,15 +58,20 @@ const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) 
 
   return (
     <div className="dashboard">
-      <Header />
+      <Header onLoginClick={function (): void {
+        throw new Error('Function not implemented.')
+      } } />
+
       <div className="dashboard-header">
-        <h1></h1>
       </div>
 
       <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>
 
       <div className="dashboard-footer">
-        <p>Inicio de Sesión</p>
+        {/* Botón de logout */}
+        <button className="login-btn" onClick={onLogout}>
+          Cerrar Sesión
+        </button>
       </div>
     </div>
   )

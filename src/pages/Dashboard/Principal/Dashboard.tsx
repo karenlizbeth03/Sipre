@@ -6,6 +6,7 @@ import Header from '../../../components/Header/Header'
 interface DashboardProps {
   activeMenu: MenuOption
   setActiveMenu: (option: MenuOption) => void
+  onLogout: () => void // ✅ agregamos la prop de logout
 }
 
 interface MenuItem {
@@ -13,7 +14,6 @@ interface MenuItem {
   option?: MenuOption
   children?: MenuItem[]
 }
-
 const menuItems: MenuItem[] = [
     
   { label: 'RUTA ENTREGAS', option: 'ruta-entregas' },
@@ -110,7 +110,7 @@ const menuItems: MenuItem[] = [
   }
 ]
 
-const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) => {
+const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogout }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
 
   const toggleMenu = (label: string) => {
@@ -141,16 +141,18 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu }) => {
 
   return (
     <div className="dashboard">
-        <Header />
+      <Header />
+
       <div className="dashboard-header">
-        <h1></h1>
       </div>
 
       <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>
 
       <div className="dashboard-footer">
-        <button className='login-btn'>Inicio de Sesión</button>
-        
+        {/* Botón de logout */}
+        <button className="login-btn" onClick={onLogout}>
+          Cerrar Sesión
+        </button>
       </div>
     </div>
   )
