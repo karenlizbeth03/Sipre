@@ -34,6 +34,7 @@ const menuItems: MenuItem[] = [
 
 const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogout }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
+  const [showMenu, setShowMenu] = useState(true) // 👈 controla visibilidad del menú
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -63,17 +64,23 @@ const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, on
 
   return (
     <div className="dashboard">
-      <Header onLoginClick={function (): void {
-        throw new Error('Function not implemented.')
-      } } />
+      <Header
+        onLoginClick={() => {
+          throw new Error('Function not implemented.')
+        }}
+      />
 
+      {/* Botón para ocultar/mostrar el menú */}
       <div className="dashboard-header">
+        <button className="toggle-menu-btn" onClick={() => setShowMenu(!showMenu)}>
+          {showMenu ? 'Ocultar Menú' : 'Mostrar Menú'}
+        </button>
       </div>
 
-      <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>
+      {/* Menú que se oculta */}
+      {showMenu && <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>}
 
       <div className="dashboard-footer">
-        {/* Botón de logout */}
         <button className="login-btn" onClick={onLogout}>
           Cerrar Sesión
         </button>
@@ -81,5 +88,6 @@ const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, on
     </div>
   )
 }
+
 
 export default DashboardUser

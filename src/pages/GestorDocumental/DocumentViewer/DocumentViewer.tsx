@@ -23,7 +23,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
     const ext = document.name.split('.').pop()?.toLowerCase();
     const container = previewRef.current;
 
-    // Reset del contenedor
     container.innerHTML = 'Cargando...';
 
     if (ext === 'docx') {
@@ -34,17 +33,17 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
           renderAsync(data, container);
         });
     } else if (ext === 'xlsx') {
-      fetch(document.url)
-        .then(res => res.arrayBuffer())
-        .then(data => {
-          const wb = XLSX.read(data, { type: 'array' });
-          const html = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]]);
-          container.innerHTML = html;
-        });
-    } else if (document.type.includes('image')) {
+  fetch(document.url)
+    .then(res => res.arrayBuffer())
+    .then(data => {
+      const wb = XLSX.read(data, { type: 'array' });
+      const html = XLSX.utils.sheet_to_html(wb.Sheets[wb.SheetNames[0]]);
+      container.innerHTML = `<div class="excel-container">${html}</div>`;
+    });
+}
+ else if (document.type.includes('image')) {
       container.innerHTML = `<img src="${document.url}" alt="${document.name}" style="max-width:100%;"/>`;
     } else {
-      // PDFs, TXT, otros
       container.innerHTML = `
         <iframe src="${document.url}" width="100%" height="600px" style="border:none;"></iframe>
       `;

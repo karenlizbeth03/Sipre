@@ -21,13 +21,13 @@ const DocumentManager: React.FC = () => {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const uploadRef = useRef<{ triggerUpload: () => void }>(null)
 
-  const filteredDocuments = documents.filter(doc => 
+  const filteredDocuments = documents.filter(doc =>
     doc.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleUpload = (files: FileList) => {
     const newDocuments: Document[] = []
-    
+
     Array.from(files).forEach(file => {
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -40,7 +40,7 @@ const DocumentManager: React.FC = () => {
           url: e.target?.result as string
         }
         newDocuments.push(newDoc)
-        
+
         if (newDocuments.length === files.length) {
           setDocuments(prev => [...prev, ...newDocuments])
         }
@@ -68,9 +68,9 @@ const DocumentManager: React.FC = () => {
   return (
     <div className="document-manager">
       <p> <br /></p>
-        <Header onLoginClick={function (): void {
+      <Header onLoginClick={function (): void {
         throw new Error('Function not implemented.')
-      } } />
+      }} />
       <div className="page-content">
         <div className="document-header">
           <h2>Gestión de Documentos</h2>
@@ -86,16 +86,18 @@ const DocumentManager: React.FC = () => {
             </button>
           </div>
         </div>
-        
+
 
         <div className="document-content">
-          <DocumentList
-            documents={filteredDocuments}
-            onSelect={setSelectedDocument}
-            onDelete={handleDelete}
-            onDownload={handleDownload}
-          />
-          
+          <div className="document-list-container">
+            <DocumentList
+              documents={filteredDocuments}
+              onSelect={setSelectedDocument}
+              onDelete={handleDelete}
+              onDownload={handleDownload}
+            />
+          </div>
+
           <div className="document-viewer-container">
             {selectedDocument ? (
               <DocumentViewer document={selectedDocument} />
@@ -109,9 +111,9 @@ const DocumentManager: React.FC = () => {
 
       </div>
       <p></p>
-       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
+      <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
     </div>
-    
+
   )
 }
 export default DocumentManager
