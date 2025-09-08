@@ -1,6 +1,7 @@
-// DocumentUpload/DocumentUpload.tsx (versión mejorada)
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
+// DocumentUpload/DocumentUpload.tsx 
+import React, { forwardRef, useImperativeHandle, useRef , useState} from 'react'
 import './DocumentUpload.css'
+//import axios from 'axios';
 
 export interface DocumentUploadProps {
   onUpload: (files: FileList) => void

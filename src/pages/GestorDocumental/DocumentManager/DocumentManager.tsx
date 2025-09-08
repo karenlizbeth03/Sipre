@@ -68,7 +68,9 @@ const DocumentManager: React.FC = () => {
   return (
     <div className="document-manager">
       <p> <br /></p>
-        <Header />
+        <Header onLoginClick={function (): void {
+        throw new Error('Function not implemented.')
+      } } />
       <div className="page-content">
         <div className="document-header">
           <h2>Gestión de Documentos</h2>
@@ -94,7 +96,6 @@ const DocumentManager: React.FC = () => {
             onDownload={handleDownload}
           />
           
-
           <div className="document-viewer-container">
             {selectedDocument ? (
               <DocumentViewer document={selectedDocument} />
@@ -105,6 +106,7 @@ const DocumentManager: React.FC = () => {
             )}
           </div>
         </div>
+
       </div>
       <p></p>
        <DocumentUpload ref={uploadRef} onUpload={handleUpload} />

@@ -18,7 +18,12 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
 
   { label: 'INICIO', option: 'home' },
-
+   {
+    label: 'ADMINISTRADOR',
+    children: [
+      { label: 'NUEVO MENU', option: 'nuevo_menu' }
+    ]
+  },
   {
     label: 'GESTOR DOCUMENTAL',
     children: [

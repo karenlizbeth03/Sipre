@@ -39,6 +39,7 @@ export type MenuOption =
   | 'tickets-soporte-asignados'
   | 'busqueda-ticket'
   | 'reporte-ti-fechas'
+  |'nuevo_menu'  
   | 'reporte-ti-actividades';
 
 function App() {
