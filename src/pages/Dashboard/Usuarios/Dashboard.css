@@ -1,26 +1,36 @@
-.dashboard {
-  width: 260px;
-  background: #000000;
-  color: white;
-  height: 100vh;
+/* Layout con menú superior */
+.dashboard-top-layout {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  background: #f5f7fa;
 }
 
+/* Header */
 .dashboard-header {
-  padding: 15px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: center;
-  background: #172554;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: black;
+  color: white;
+  padding: 12px 20px;
+  position: relative;
 }
 
+.dashboard-header .logo {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* Menú */
 .dashboard-nav {
-  flex: 1;
-  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .menu {
+  display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -28,55 +38,81 @@
 
 .menu-item {
   padding: 10px 15px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: white;
 }
 
 .menu-item:hover {
-  background: #f97316;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.active {
-  background: #f97316 !important;
+.menu-item.active {
+  background: white;
+  color: #f97316;
+  font-weight: bold;
 }
 
-.has-children::after {
-  content: ' ▼';
-  font-size: 0.7em;
-  float: right;
-}
-
-.level-1 {
-  background: #D17000;
-}
-
-.level-2 {
-  background: #FF961F;
-}
-
-.level-3 {
-  background: #FFC88A;
-}
-
-.dashboard-footer {
-  padding: 15px;
-  text-align: center;
-  border-top: 1px solid #334155;
-}
-.toggle-menu-btn {
-  background: #007bff;
-  color: #fff;
+/* Botón cambiar rol */
+.logout-btn {
+  background: #ff6b6b;
   border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #ff4757;
+  transform: scale(1.05);
+}
+
+/* Contenido */
+.dashboard-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Responsivo */
+.menu-toggle {
+  display: none;
+  background: #f97316;
+  border: none;
+  color: white;
+  font-size: 20px;
   padding: 8px 12px;
-  margin: 10px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.toggle-menu-btn:hover {
-  background: #0056b3;
-}
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
 
-.dashboard-nav {
-  transition: all 0.3s ease;
+  .dashboard-nav {
+    display: none;
+    flex-direction: column;
+    background: #f97316;
+    position: absolute;
+    top: 55px;
+    right: 0;
+    width: 200px;
+    padding: 10px;
+    border-radius: 0 0 10px 10px;
+  }
+
+  .dashboard-nav.open {
+    display: flex;
+  }
+
+  .menu {
+    flex-direction: column;
+  }
 }

@@ -1,13 +1,218 @@
-/* App.css */
-.app {
+.role-selector {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: 100vh;
+  background: black;
+  color: white;
+  text-align: center;
+}
+
+.role-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.role-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.btn {
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn.admin {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.btn.user {
+  background-color: #1dd1a1;
+  color: white;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+.btn.toggle {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #f97316;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn.toggle:hover {
+  background: #f7b553;
+  transform: scale(1.05);
+}
+
+
+/* {
+  box-sizing: border-box;
+}
+
+body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
   background-color: #f5f5f5;
 }
 
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-toggle button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #34495e;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.view-toggle button.active {
+  background-color: #e74c3c;
+}
+
+.view-toggle button:hover {
+  background-color: #4a6572;
+}
+
+.user-view {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.user-view h2 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.page-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+}
+
+/* Estilos para la navegación de usuario 
+.user-navigation {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.menu-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 250px;
+}
+
+.section-title {
+  color: #2c3e50;
+  margin-top: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e74c3c;
+}
+
+.user-navigation ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-navigation .menu-item {
+  margin-bottom: 0.5rem;
+}
+
+.menu-link, .menu-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: #2c3e50;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.menu-link:hover, .menu-toggle:hover {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.menu-arrow {
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+}
+
+.menu-arrow.open {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #ddd;
+}
+
+.menu-level-1 .menu-link,
+.menu-level-1 .menu-toggle {
+  background-color: #f1f8ff;
+}
+
+.menu-level-2 .menu-link,
+.menu-level-2 .menu-toggle {
+  background-color: #e8f5e9;
+}
+
+/* Responsive
+@media (max-width: 768px) {
+  .user-navigation {
+    flex-direction: column;
+  }
+  
+  header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+} 

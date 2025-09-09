@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import type { MenuOption } from '../../../App'
 import './Dashboard.css'
-import Header from '../../../components/Header/Header'
 
 interface DashboardProps {
   activeMenu: MenuOption
   setActiveMenu: (option: MenuOption) => void
-  onLogout: () => void // ✅ agregamos la prop de logout
+  onLogout: () => void
+  children?: React.ReactNode
 }
 
 interface MenuItem {
@@ -14,104 +14,26 @@ interface MenuItem {
   option?: MenuOption
   children?: MenuItem[]
 }
+
 const menuItems: MenuItem[] = [
-    
-  { label: 'RUTA ENTREGAS', option: 'ruta-entregas' },
   {
-    label: 'ADMINISTRACIÓN',
-    children: [
-      { label: 'DATOS EMPRESA', option: 'datos-empresa' },
-      {
-        label: 'ROLES-USUARIOS',
-        children: [
-          { label: 'ROLES DE USUARIOS', option: 'roles-usuarios' },
-          { label: 'FICHA USUARIO', option: 'ficha-usuario' }
-        ]
-      }
-    ]
+    label: 'GESTOR DE MENUS',
+    children: [{ label: 'NUEVO MENU', option: 'nuevo_menu' }]
   },
-  {
-    label: 'MARKETING',
-    children: [
-      { label: 'NUEVO TICKET DE MARKETING', option: 'nuevo-ticket-marketing' },
-      { label: 'LISTADO TICKETS DE MARKETING', option: 'listado-tickets-marketing' },
-      { label: 'LISTADO TICKETS ASIGNADOS', option: 'listado-tickets-asignados' },
-      { label: 'TICKETS CERRADOS', option: 'tickets-cerrados' },
-      {
-        label: 'REPORTES',
-        children: [
-          { label: 'REPORTE FILTRO POR FECHAS', option: 'reporte-fechas' },
-          { label: 'REPORTE ACTIVIDADES POR FECHAS', option: 'reporte-actividades' }
-        ]
-      }
-    ]
-  },
-  {
-    label: 'ORDENES TRABAJO ST',
-    children: [
-      { label: 'LISTADO ORDENES TRABAJO', option: 'listado-ot' },
-      { label: 'NUEVA ORDEN DE TRABAJO', option: 'nueva-ot' },
-      { label: 'OT CERRADOS', option: 'ot-cerrados' },
-      { label: 'LISTADO OT ASIGNADOS', option: 'listado-ot-asignados' },
-      { label: 'EDITAR OT', option: 'editar-ot' },
-      { label: 'DATOS ENVIO OST', option: 'datos-envio-ost' },
-      {
-        label: 'REPORTES',
-        children: [
-          { label: 'REPORTE GENERAL OT', option: 'reporte-general-ot' },
-          { label: 'REPORTE REPUESTOS OT', option: 'reporte-repuestos-ot' }
-        ]
-      }
-    ]
-  },
-  {
-    label: 'POST-VENTA',
-    children: [
-      { label: 'FICHA CLIENTE', option: 'ficha-cliente' },
-      { label: 'LISTADO POSTVENTA', option: 'listado-postventa' },
-      { label: 'NUEVA ORDEN DE POSTVENTA', option: 'nueva-postventa' }
-    ]
-  },
-  { label: 'RUTA-CAMIONES', children: [{ label: 'RUTA CAMIONES', option: 'ruta-camiones' }] },
-  {
-    label: 'TECNOLOGIAS DE LA INFORMACION',
-    children: [
-      {
-        label: 'CONFIGURACION',
-        children: [
-          { label: 'CATEGORIA', option: 'categoria' },
-          { label: 'SUB-CATEGORIA', option: 'sub-categoria' }
-        ]
-      },
-      {
-        label: 'TICKETS',
-        children: [
-          { label: 'LISTADO TICKETS DE SOPORTE', option: 'listado-tickets-soporte' },
-          { label: 'NUEVO TICKET DE SOPORTE', option: 'nuevo-ticket-soporte' },
-          { label: 'LISTADO TICKETS SOPORTE ASIGNADOS', option: 'tickets-soporte-asignados' },
-          { label: 'BUSQUEDA TICKET', option: 'busqueda-ticket' }
-        ]
-      },
-      {
-        label: 'REPORTES',
-        children: [
-          { label: 'REPORTE TI FILTRO POR FECHAS', option: 'reporte-ti-fechas' },
-          { label: 'REPORTE TI ACTIVIDADES POR FECHAS', option: 'reporte-ti-actividades' }
-        ]
-      }
-    ]
-  }
-  ,
   {
     label: 'GESTOR DOCUMENTAL',
-    children: [
-      { label: 'DOCUMENTOS', option: 'documents' }
-    ]
+    children: [{ label: 'DOCUMENTOS', option: 'documents' }]
   }
 ]
 
-const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  activeMenu,
+  setActiveMenu,
+  onLogout,
+  children
+}) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -140,20 +62,26 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogo
   )
 
   return (
-    <div className="dashboard">
-      <Header />
+    <div className="dashboard-top-layout">
+      {/* Header con menú */}
+      <header className="dashboard-header">
+        <div className="logo">Admin</div>
 
-      <div className="dashboard-header">
-      </div>
-
-      <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>
-
-      <div className="dashboard-footer">
-        {/* Botón de logout */}
-        <button className="login-btn" onClick={onLogout}>
-          Cerrar Sesión
+        {/* Botón hamburguesa para móviles */}
+        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          ☰
         </button>
-      </div>
+
+        <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
+          {renderMenu(menuItems)}
+          <button className="logout-btn" onClick={onLogout}>
+            🔄 Cambiar Rol
+          </button>
+        </nav>
+      </header>
+
+      {/* Contenido */}
+      <main className="dashboard-content">{children}</main>
     </div>
   )
 }

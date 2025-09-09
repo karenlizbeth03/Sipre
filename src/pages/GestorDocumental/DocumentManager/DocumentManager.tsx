@@ -4,7 +4,7 @@ import DocumentList from '../DocumentList/DocumentList'
 import DocumentUpload from '../DocumentUpload/DocumentUpload'
 import DocumentViewer from '../DocumentViewer/DocumentViewer'
 import './DocumentManager.css'
-import Header from '../../../components/Header/Header'
+//import Header from '../../../components/Header/Header'
 
 export interface Document {
   id: string
@@ -68,9 +68,9 @@ const DocumentManager: React.FC = () => {
   return (
     <div className="document-manager">
       <p> <br /></p>
-      <Header onLoginClick={function (): void {
+      {/* <Header onLoginClick={function (): void {
         throw new Error('Function not implemented.')
-      }} />
+      }} /> */}
       <div className="page-content">
         <div className="document-header">
           <h2>Gestión de Documentos</h2>

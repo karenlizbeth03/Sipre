@@ -1,40 +1,37 @@
 import React, { useState } from 'react'
 import type { MenuOption } from '../../../App'
 import './Dashboard.css'
-import Header from '../../../components/Header/Header'
 
 interface DashboardProps {
   activeMenu: MenuOption
   setActiveMenu: (option: MenuOption) => void
-  onLogout: () => void // ✅ agregamos la prop de logout
+  onLogout: () => void
+  children?: React.ReactNode
 }
 
 interface MenuItem {
   label: string
   option?: MenuOption
   children?: MenuItem[]
+  
 }
 
 const menuItems: MenuItem[] = [
 
-  { label: 'INICIO', option: 'home' },
-   {
-    label: 'ADMINISTRADOR',
-    children: [
-      { label: 'NUEVO MENU', option: 'nuevo_menu' }
-    ]
-  },
   {
     label: 'GESTOR DOCUMENTAL',
-    children: [
-      { label: 'DOCUMENTOS', option: 'documents' }
-    ]
+    children: [{ label: 'DOCUMENTOS', option: 'documents' }]
   }
 ]
 
-const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  activeMenu,
+  setActiveMenu,
+  onLogout,
+  children
+}) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
-  const [showMenu, setShowMenu] = useState(true) // 👈 controla visibilidad del menú
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -63,31 +60,28 @@ const DashboardUser: React.FC<DashboardProps> = ({ activeMenu, setActiveMenu, on
   )
 
   return (
-    <div className="dashboard">
-      <Header
-        onLoginClick={() => {
-          throw new Error('Function not implemented.')
-        }}
-      />
+    <div className="dashboard-top-layout">
+      {/* Header con menú */}
+      <header className="dashboard-header">
+        <div className="logo">Usuarios</div>
 
-      {/* Botón para ocultar/mostrar el menú */}
-      <div className="dashboard-header">
-        <button className="toggle-menu-btn" onClick={() => setShowMenu(!showMenu)}>
-          {showMenu ? 'Ocultar Menú' : 'Mostrar Menú'}
+        {/* Botón hamburguesa para móviles */}
+        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          ☰
         </button>
-      </div>
 
-      {/* Menú que se oculta */}
-      {showMenu && <nav className="dashboard-nav">{renderMenu(menuItems)}</nav>}
+        <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
+          {renderMenu(menuItems)}
+          <button className="logout-btn" onClick={onLogout}>
+            🔄 Cambiar Rol
+          </button>
+        </nav>
+      </header>
 
-      <div className="dashboard-footer">
-        <button className="login-btn" onClick={onLogout}>
-          Cerrar Sesión
-        </button>
-      </div>
+      {/* Contenido */}
+      <main className="dashboard-content">{children}</main>
     </div>
   )
 }
 
-
-export default DashboardUser
+export default Dashboard

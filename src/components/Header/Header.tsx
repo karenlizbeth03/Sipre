@@ -1,7 +1,7 @@
 import React from 'react';
 import './Header.css';
 
-interface HeaderProps {
+/* interface HeaderProps {
   onLoginClick: () => void;
 }
 
@@ -17,3 +17,4 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
 };
 
 export default Header;
+ */

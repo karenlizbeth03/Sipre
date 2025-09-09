@@ -1,0 +1,65 @@
+.user-navigation {
+  background: #070707;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.menu-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.menu-level-0,
+.menu-level-1,
+.menu-level-2 {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  color: black;
+}
+
+.menu-item {
+  margin: 0.3rem 0;
+}
+
+.menu-link,
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: background 0.3s;
+}
+
+.menu-link:hover,
+.menu-toggle:hover {
+  background: #ecf0f1;
+}
+
+.menu-arrow {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  transition: transform 0.3s;
+}
+
+.menu-arrow.open {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  margin-left: 1rem;
+  margin-top: 0.3rem;
+}
