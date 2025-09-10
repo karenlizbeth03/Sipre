@@ -1,51 +1,49 @@
-import React, { useState } from 'react'
-import type { MenuOption } from '../../../App'
-import './Dashboard.css'
+import React, { useState } from "react";
+import type { MenuOption } from "../../../types";
+import "./Dashboard.css";
 
-interface DashboardProps {
-  activeMenu: MenuOption
-  setActiveMenu: (option: MenuOption) => void
-  onLogout: () => void
-  children?: React.ReactNode
+interface DashboardUserProps {
+  activeMenu: MenuOption;
+  setActiveMenu: (option: MenuOption) => void;
+  onLogout: () => void;
+  children?: React.ReactNode;
 }
 
 interface MenuItem {
-  label: string
-  option?: MenuOption
-  children?: MenuItem[]
-  
+  label: string;
+  option?: MenuOption;
+  children?: MenuItem[];
 }
 
 const menuItems: MenuItem[] = [
-
   {
-    label: 'GESTOR DOCUMENTAL',
-    children: [{ label: 'DOCUMENTOS', option: 'documents' }]
-  }
-]
+    label: "GESTOR DOCUMENTAL",
+    children: [{ label: "DOCUMENTOS", option: "documents" }],
+  },
+];
 
-const Dashboard: React.FC<DashboardProps> = ({
+const DashboardUser: React.FC<DashboardUserProps> = ({
   activeMenu,
   setActiveMenu,
   onLogout,
-  children
+  children,
 }) => {
-  const [openMenus, setOpenMenus] = useState<string[]>([])
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = (label: string) => {
-    setOpenMenus(prev =>
-      prev.includes(label) ? prev.filter(item => item !== label) : [...prev, label]
-    )
-  }
+    setOpenMenus((prev) =>
+      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
+    );
+  };
 
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
-      {items.map(item => (
+      {items.map((item) => (
         <li key={item.label}>
           <div
-            className={`menu-item ${item.children ? 'has-children' : ''} ${
-              activeMenu === item.option ? 'active' : ''
+            className={`menu-item ${item.children ? "has-children" : ""} ${
+              activeMenu === item.option ? "active" : ""
             }`}
             onClick={() =>
               item.children ? toggleMenu(item.label) : item.option && setActiveMenu(item.option)
@@ -53,24 +51,24 @@ const Dashboard: React.FC<DashboardProps> = ({
           >
             {item.label}
           </div>
-          {item.children && openMenus.includes(item.label) && renderMenu(item.children, level + 1)}
+          {item.children &&
+            openMenus.includes(item.label) &&
+            renderMenu(item.children, level + 1)}
         </li>
       ))}
     </ul>
-  )
+  );
 
   return (
     <div className="dashboard-top-layout">
-      {/* Header con menú */}
       <header className="dashboard-header">
         <div className="logo">Usuarios</div>
 
-        {/* Botón hamburguesa para móviles */}
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>
 
-        <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
+        <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {renderMenu(menuItems)}
           <button className="logout-btn" onClick={onLogout}>
             🔄 Cambiar Rol
@@ -78,10 +76,9 @@ const Dashboard: React.FC<DashboardProps> = ({
         </nav>
       </header>
 
-      {/* Contenido */}
       <main className="dashboard-content">{children}</main>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default DashboardUser;

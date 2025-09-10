@@ -3,8 +3,8 @@ import Dashboard from './pages/Dashboard/Principal/Dashboard';
 import DashboardUser from './pages/Dashboard/Usuarios/Dashboard';
 import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager';
 import Home from './components/Home';
-import MenuBuilder from './components/MenuBuilder';
-import { NavigationMenu } from './components/NavigationMenu';
+import MenuBuilder from './components/MenuBuilder/MenuBuilder';
+import { NavigationMenu } from './components/NavigationMenu/NavigationMenu';
 import { useMenu } from './hooks/useMenu';
 import './App.css';
 

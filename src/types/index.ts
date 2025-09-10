@@ -1,9 +1,11 @@
 export interface MenuItem {
   id: string;
   title: string;
-  url?: string;
+  option?: string;
+  url?: string; // <-- agregar aquí
   children?: MenuItem[];
 }
+
 
 export interface MenuSection {
   id: string;

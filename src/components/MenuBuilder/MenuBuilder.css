@@ -1,0 +1,224 @@
+/* Fondo general */
+.menu-builder {
+  background-color: #0f0f10; /* fondo oscuro elegante */
+  color: #e0e0e0;
+  padding: 30px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+/* Encabezados */
+.menu-builder h2 {
+  color: #f4b942; /* acento cálido */
+  margin-bottom: 25px;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #f4b94233;
+  padding-bottom: 8px;
+}
+
+.menu-builder h3 {
+  color: #f4b942;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+}
+
+/* Inputs y botones de sección */
+.section-creator {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.section-creator input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background-color: #2a2a3d;
+  color: #e0e0e0;
+  transition: background 0.3s;
+}
+
+.section-creator input:focus {
+  background-color: #3a3a5a;
+}
+
+.section-creator button {
+  background-color: #f4b942; /* crear / añadir */
+  color: #0f0f10;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.section-creator button:hover {
+  background-color: #d99c2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Sección botones */
+.section h3 button {
+  background-color: #33334d;
+  color: #e0e0e0;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.section h3 button:hover {
+  background-color: #4aa3f0; /* editar */
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Lista de items */
+.menu-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.menu-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #2e2e32;
+  transition: background 0.3s;
+}
+
+.menu-item:hover {
+  background-color: #20202c;
+}
+
+.menu-item span {
+  flex: 1;
+  font-size: 1rem;
+}
+
+/* Botones de item */
+.menu-item button {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+/* Crear / añadir submenú */
+.menu-item button:nth-child(2) { 
+  background-color: #f4b942;
+  color: #0f0f10;
+}
+
+.menu-item button:nth-child(2):hover {
+  background-color: #d99c2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Editar */
+.menu-item button:nth-child(3) {
+  background-color: #4aa3f0;
+  color: #fff;
+}
+
+.menu-item button:nth-child(3):hover {
+  background-color: #1f7ae0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Eliminar */
+.menu-item button:nth-child(4) {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+
+.menu-item button:nth-child(4):hover {
+  background-color: #ff3b2e;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Formulario de item */
+.menu-item-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.menu-item-form input {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background-color: #2b2b2b;
+  color: #e0e0e0;
+  transition: background 0.3s;
+}
+
+.menu-item-form input:focus {
+  background-color: #3a3a5a;
+}
+
+/* Botón de envío en formulario */
+.menu-item-form button {
+  background-color: #f4b942; /* crear / añadir */
+  color: #0f0f10;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.menu-item-form button:hover {
+  background-color: #d99c2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Subniveles con borde sutil */
+.menu-list ul {
+  margin-left: 25px;
+  border-left: 1px solid #444466;
+  padding-left: 15px;
+}
+
+/* Botón "+ Item" raíz */
+.section > button {
+  margin-top: 12px;
+  background-color: #f4b942; /* crear / añadir */
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.section > button:hover {
+  background-color: #d99c2f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}

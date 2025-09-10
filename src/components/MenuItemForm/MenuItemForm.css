@@ -57,3 +57,34 @@
 .form-actions button[type="button"]:hover {
   background: #c0392b;
 }
+.menu-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.menu-actions button {
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.menu-actions button:nth-child(1) { /* Submenú */
+  background: #f59e0b;
+  color: #1e293b;
+}
+.menu-actions button:nth-child(1):hover { background: #d97706; }
+
+.menu-actions button:nth-child(2) { /* Editar */
+  background: #3b82f6;
+  color: white;
+}
+.menu-actions button:nth-child(2):hover { background: #2563eb; }
+
+.menu-actions button:nth-child(3) { /* Eliminar */
+  background: #ef4444;
+  color: white;
+}
+.menu-actions button:nth-child(3):hover { background: #dc2626; }
