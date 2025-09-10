@@ -10,65 +10,53 @@ const MenuBuilder: React.FC = () => {
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [newSectionTitle, setNewSectionTitle] = useState('');
 
-  // Agregar item
-  const handleAddMenuItem = (
-    sectionId: string,
-    parentId: string | null,
-    itemData: Omit<MenuItem, 'id'>
-  ) => {
+  const handleAddMenuItem = (sectionId: string, parentId: string | null, itemData: Omit<MenuItem, 'id'>) => {
     const newItem: MenuItem = { ...itemData, id: Date.now().toString() };
     addMenuItem(sectionId, newItem, parentId || undefined);
     setActiveItem(null);
   };
 
-  // Editar item
-  const handleUpdateMenuItem = (
-    sectionId: string,
-    itemId: string,
-    itemData: Omit<MenuItem, 'id'>
-  ) => {
+  const handleUpdateMenuItem = (sectionId: string, itemId: string, itemData: Omit<MenuItem, 'id'>) => {
     updateMenuItem(sectionId, itemId, itemData);
     setEditItemId(null);
   };
 
-  // Agregar sección
   const handleAddSection = () => {
     if (!newSectionTitle.trim()) return;
     addSection(newSectionTitle.trim());
     setNewSectionTitle('');
   };
 
-  // Render items recursivos (para submenús)
   const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
     <ul className="menu-list" style={{ marginLeft: `${level * 20}px` }}>
       {items.map(item => (
         <li key={item.id}>
           <div className="menu-item">
             <span>{item.title}</span>
-            <button onClick={() => setActiveItem(item.id)}>+ Submenú</button>
-            <button onClick={() => setEditItemId(item.id)}>Editar</button>
-            <button onClick={() => removeMenuItem(sectionId, item.id)}>Eliminar</button>
+            <div className="menu-buttons">
+              <button onClick={() => setActiveItem(item.id)}>+ Submenú</button>
+              <button onClick={() => setEditItemId(item.id)}>Editar</button>
+              <button onClick={() => removeMenuItem(sectionId, item.id)}>Eliminar</button>
+            </div>
           </div>
 
-          {/* Sub-items */}
           {item.children && renderMenuItems(item.children, sectionId, level + 1)}
 
-          {/* Formulario para agregar submenú */}
           {activeItem === item.id && (
             <MenuItemForm
-              onAddItem={(itemData) => handleAddMenuItem(sectionId, item.id, itemData)}
+              key={`add-${item.id}`}
+              mode="add"
+              onAddItem={(data) => handleAddMenuItem(sectionId, item.id, data)}
               onCancel={() => setActiveItem(null)}
             />
           )}
 
-          {/* Formulario para editar item */}
           {editItemId === item.id && (
             <MenuItemForm
-              initialData={{
-                title: item.title,
-                option: item.option ?? undefined, // opcional
-              }}
-              onSubmit={(itemData) => handleUpdateMenuItem(sectionId, item.id, itemData)}
+              key={`edit-${item.id}`}
+              mode="edit"
+              initialData={{ title: item.title, option: item.option }}
+              onSubmit={(data) => handleUpdateMenuItem(sectionId, item.id, data)}
               onCancel={() => setEditItemId(null)}
             />
           )}
@@ -81,7 +69,6 @@ const MenuBuilder: React.FC = () => {
     <div className="menu-builder">
       <h2>Constructor de Menú</h2>
 
-      {/* Crear nueva sección */}
       <div className="section-creator">
         <input
           type="text"
@@ -92,7 +79,6 @@ const MenuBuilder: React.FC = () => {
         <button onClick={handleAddSection}>+ Sección</button>
       </div>
 
-      {/* Render secciones */}
       {sections.map(section => (
         <div key={section.id} className="section">
           <h3>
@@ -102,10 +88,11 @@ const MenuBuilder: React.FC = () => {
 
           {renderMenuItems(section.items, section.id)}
 
-          {/* Formulario para agregar item raíz */}
           {activeItem === section.id && (
             <MenuItemForm
-              onAddItem={(itemData) => handleAddMenuItem(section.id, null, itemData)}
+              key={`add-root-${section.id}`}
+              mode="add"
+              onAddItem={(data) => handleAddMenuItem(section.id, null, data)}
               onCancel={() => setActiveItem(null)}
             />
           )}

@@ -1,68 +1,55 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { MenuItem } from '../../types';
 
 interface MenuItemFormProps {
-  initialData?: Omit<MenuItem, 'id'>; // para editar
+  initialData?: Omit<MenuItem, 'id'>;
+  mode?: 'add' | 'edit';
   onAddItem?: (item: Omit<MenuItem, 'id'>) => void;
   onSubmit?: (item: Omit<MenuItem, 'id'>) => void;
   onCancel: () => void;
-  mode?: 'add' | 'edit';
 }
 
 export const MenuItemForm: React.FC<MenuItemFormProps> = ({
   initialData,
+  mode = 'add',
   onAddItem,
   onSubmit,
-  onCancel,
-  mode = 'add'
+  onCancel
 }) => {
   const [title, setTitle] = useState(initialData?.title || '');
-  const [url, setUrl] = useState(initialData?.url || '');
-
-  // Si cambia initialData, actualizar inputs
-  useEffect(() => {
-    setTitle(initialData?.title || '');
-    setUrl(initialData?.url || '');
-  }, [initialData]);
+  const [option, setOption] = useState(initialData?.option || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
-
-    const itemData: Omit<MenuItem, 'id'> = {
-      title: title.trim(),
-      ...(url.trim() && { url: url.trim() })
-    };
-
-    if (mode === 'add' && onAddItem) onAddItem(itemData);
-    if (mode === 'edit' && onSubmit) onSubmit(itemData);
-
-    setTitle('');
-    setUrl('');
+    const data = { title, option };
+    if (mode === 'add' && onAddItem) {
+      onAddItem(data);
+    } else if (mode === 'edit' && onSubmit) {
+      onSubmit(data);
+    }
   };
 
+  useEffect(() => {
+    setTitle(initialData?.title || '');
+    setOption(initialData?.option || '');
+  }, [initialData]);
+
   return (
-    <form onSubmit={handleSubmit} className="menu-item-form">
-      <div>
-        <label htmlFor="title">Título:</label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="url">URL (opcional):</label>
-        <input
-          type="text"
-          id="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
-      </div>
-      <div className="form-actions">
+    <form className="menu-item-form" onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Título"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="Opción (opcional)"
+        value={option}
+        onChange={(e) => setOption(e.target.value)}
+      />
+      <div className="form-buttons">
         <button type="submit">{mode === 'add' ? 'Agregar' : 'Actualizar'}</button>
         <button type="button" onClick={onCancel}>Cancelar</button>
       </div>
