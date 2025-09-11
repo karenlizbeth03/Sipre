@@ -8,9 +8,7 @@ const Home: React.FC = () => {
       
       <div className="page-content">
         <div className="hero-section">
-          <h2>Bienvenido al Gestor de Documentos</h2>
-          <p>Gestiona todos tus documentos en un solo lugar</p>
-        </div>
+          </div>
 
         
       </div>

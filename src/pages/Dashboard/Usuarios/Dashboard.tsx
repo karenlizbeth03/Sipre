@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import type { MenuOption } from "../../../types";
 import type { MenuItem, MenuSection } from "../../../types";
 import "./Dashboard.css";
+import { Repeat } from 'lucide-react';
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -18,6 +19,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sections, setSections] = useState<MenuSection[]>([]);
+  const [openSection, setOpenSection] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("menuSections");
@@ -61,13 +63,26 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.map((section) => (
-            <div key={section.id}>
-              <h3>{section.title}</h3>
-              {renderMenu(section.items, 0)}
+            <div key={section.id} className="menu-section">
+              {/* título clickable */}
+              <h3
+                className={`menu-section-title ${
+                  openSection === section.id ? "open" : ""
+                }`}
+                onClick={() =>
+                  setOpenSection(openSection === section.id ? null : section.id)
+                }
+              >
+                {section.title}
+              </h3>
+
+              {/* solo mostrar items si está expandida */}
+              {openSection === section.id && renderMenu(section.items, 0)}
             </div>
           ))}
-          <button className="logout-btn" onClick={onLogout}>
-            🔄 Cambiar Rol
+
+          <button className="logout-btn" onClick={onLogout}><Repeat />
+            <center>Cambiar Rol</center>
           </button>
         </nav>
       </header>
