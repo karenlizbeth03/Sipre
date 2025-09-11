@@ -25,29 +25,34 @@ const DocumentManager: React.FC = () => {
     doc.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleUpload = (files: FileList) => {
-    const newDocuments: Document[] = []
+ const handleUpload = (files: FileList) => {
+  const fileArray = Array.from(files)
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const newDoc: Document = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          uploadDate: new Date(),
-          url: e.target?.result as string
+  Promise.all(
+    fileArray.map(file => {
+      return new Promise<Document>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          resolve({
+            id: Math.random().toString(36).substr(2, 9),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            uploadDate: new Date(),
+            url: e.target?.result as string
+          })
         }
-        newDocuments.push(newDoc)
-
-        if (newDocuments.length === files.length) {
-          setDocuments(prev => [...prev, ...newDocuments])
-        }
-      }
-      reader.readAsDataURL(file)
+        reader.onerror = () => reject(reader.error)
+        reader.readAsDataURL(file)
+      })
     })
-  }
+  ).then(newDocuments => {
+    setDocuments(prev => [...prev, ...newDocuments])
+  }).catch(err => {
+    console.error('Error leyendo archivos:', err)
+  })
+}
+
 
   const handleDelete = (id: string) => {
     setDocuments(prev => prev.filter(doc => doc.id !== id))
@@ -67,7 +72,6 @@ const DocumentManager: React.FC = () => {
 
   return (
     <div className="document-manager">
-      <p> <br /></p>
       {/* <Header onLoginClick={function (): void {
         throw new Error('Function not implemented.')
       }} /> */}
@@ -81,9 +85,13 @@ const DocumentManager: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="subirdocs-btn" onClick={() => uploadRef.current?.triggerUpload()}>
+            <button
+              className="subirdocs-btn"
+              onClick={() => uploadRef.current?.triggerUpload()}
+            >
               Subir Documentos
             </button>
+
           </div>
         </div>
 
