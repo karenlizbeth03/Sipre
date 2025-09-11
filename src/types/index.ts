@@ -1,11 +1,13 @@
+// types.ts
+export type MenuOption = string;
+
 export interface MenuItem {
   id: string;
   title: string;
-  option?: string;
-  url?: string; // <-- agregar aquí
+  option?: MenuOption; // navegación interna
+  url?: string;        // navegación externa
   children?: MenuItem[];
 }
-
 
 export interface MenuSection {
   id: string;

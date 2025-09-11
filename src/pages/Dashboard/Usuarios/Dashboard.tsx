@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { MenuOption } from "../../../types";
+import type { MenuItem, MenuSection } from "../../../types";
 import "./Dashboard.css";
 
 interface DashboardUserProps {
@@ -9,51 +10,41 @@ interface DashboardUserProps {
   children?: React.ReactNode;
 }
 
-interface MenuItem {
-  label: string;
-  option?: MenuOption;
-  children?: MenuItem[];
-}
-
-const menuItems: MenuItem[] = [
-  {
-    label: "GESTOR DOCUMENTAL",
-    children: [{ label: "DOCUMENTOS", option: "documents" }],
-  },
-];
-
 const DashboardUser: React.FC<DashboardUserProps> = ({
   activeMenu,
   setActiveMenu,
   onLogout,
   children,
 }) => {
-  const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sections, setSections] = useState<MenuSection[]>([]);
 
-  const toggleMenu = (label: string) => {
-    setOpenMenus((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
-  };
+  useEffect(() => {
+    const stored = localStorage.getItem("menuSections");
+    if (stored) {
+      setSections(JSON.parse(stored));
+    }
+  }, []);
 
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
       {items.map((item) => (
-        <li key={item.label}>
+        <li key={item.id}>
           <div
             className={`menu-item ${item.children ? "has-children" : ""} ${
               activeMenu === item.option ? "active" : ""
             }`}
-            onClick={() =>
-              item.children ? toggleMenu(item.label) : item.option && setActiveMenu(item.option)
-            }
+            onClick={() => {
+              if (item.url) {
+                window.open(item.url, "_blank");
+              } else if (item.option) {
+                setActiveMenu(item.option as MenuOption);
+              }
+            }}
           >
-            {item.label}
+            {item.title}
           </div>
-          {item.children &&
-            openMenus.includes(item.label) &&
-            renderMenu(item.children, level + 1)}
+          {item.children && renderMenu(item.children, level + 1)}
         </li>
       ))}
     </ul>
@@ -69,7 +60,12 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         </button>
 
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
-          {renderMenu(menuItems)}
+          {sections.map((section) => (
+            <div key={section.id}>
+              <h3>{section.title}</h3>
+              {renderMenu(section.items, 0)}
+            </div>
+          ))}
           <button className="logout-btn" onClick={onLogout}>
             🔄 Cambiar Rol
           </button>
