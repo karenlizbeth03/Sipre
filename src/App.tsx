@@ -13,7 +13,7 @@ export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
   const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
-  const { sections } = useMenu(); // 👉 secciones dinámicas desde localStorage
+  const { sections } = useMenu(); 
 
   const toggleRole = () => {
     setUserRole(prev => (prev === 'user' ? 'admin' : 'user'));
@@ -27,7 +27,7 @@ function App() {
       case 'documents':
         return <DocumentManager />;
       case 'nuevo_menu':
-        return <MenuBuilder />; // 👉 Admin construye menús aquí
+        return <MenuBuilder />; 
       default:
         return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }

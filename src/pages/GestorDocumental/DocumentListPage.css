@@ -1,0 +1,97 @@
+/* DocumentListPage.css */
+.document-list-page {
+  padding: 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+.document-list-page h2 {
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= Tabla ================= */
+.document-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.document-table thead {
+  background: #2c3e50;
+  color: #ffffff;
+  text-align: left;
+}
+
+.document-table th,
+.document-table td {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+}
+
+.document-table tbody tr {
+  border-bottom: 1px solid #e0e6ed;
+  transition: background 0.2s ease;
+}
+
+.document-table tbody tr:hover {
+  background: #f0f4f8;
+}
+
+/* ================= Acciones ================= */
+.document-table td button {
+  margin: 0 5px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.3s ease;
+}
+
+.document-table td button:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Colores para cada acción */
+.document-table td button[title="Ver"] {
+  background: #3498db;
+  color: white;
+}
+
+.document-table td button[title="Editar"] {
+  background: #f1c40f;
+  color: #fff;
+}
+
+.document-table td button[title="Descargar"] {
+  background: #2ecc71;
+  color: #fff;
+}
+
+.document-table td button[title="Eliminar"] {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* ================= Mensaje vacío ================= */
+.document-list-page p {
+  font-size: 1rem;
+  color: #777;
+  background: #fff3cd;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ffeeba;
+}

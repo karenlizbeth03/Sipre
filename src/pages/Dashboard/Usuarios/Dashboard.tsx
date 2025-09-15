@@ -6,7 +6,7 @@ import { Repeat } from 'lucide-react';
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
-  setActiveMenu: (option: MenuOption) => void;
+  setActiveMenu: React.Dispatch<React.SetStateAction<MenuOption>>;
   onLogout: () => void;
   children?: React.ReactNode;
 }

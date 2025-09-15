@@ -1,5 +1,5 @@
 // types.ts
-export type MenuOption = string;
+export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
 
 export interface MenuItem {
   id: string;

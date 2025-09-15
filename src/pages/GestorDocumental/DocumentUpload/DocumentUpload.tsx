@@ -45,7 +45,7 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        <div className="upload-area">
+        {/* <div className="upload-area">
           <div className="upload-icon">📁</div>
           <p>Arrastra y suelta archivos aquí o</p>
           <button 
@@ -53,7 +53,7 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
             onClick={() => fileInputRef.current?.click()}
           >
             Buscar archivos
-          </button>
+          </button> */}
           <input
             ref={fileInputRef}
             type="file"
@@ -61,7 +61,7 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
-        </div>
+        {/* </div> */}
         {/* <div className="upload-info">
           <p>Formatos soportados: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, imágenes</p>
           <p>Límite máximo: 10MB por archivo</p>
