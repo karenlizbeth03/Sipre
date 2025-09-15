@@ -14,3 +14,13 @@ export interface MenuSection {
   title: string;
   items: MenuItem[];
 }
+
+export interface Document {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  uploadDate: Date;
+  url: string;
+  menuId?: string; // 🔑 para saber a qué menú pertenece
+}

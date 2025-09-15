@@ -1,10 +1,9 @@
-// components/DocumentList/DocumentList.tsx
 import React from "react";
 import type { Document } from "../DocumentManager/DocumentManager";
 
 interface Props {
   documents: Document[];
-  onView: (doc: Document) => void;   // 👈 ahora recibe el documento completo
+  onView: (doc: Document) => void;
   onDelete: (id: string) => void;
   onDownload: (doc: Document) => void;
 }
@@ -15,6 +14,7 @@ const DocumentList: React.FC<Props> = ({ documents, onView, onDelete, onDownload
       <thead>
         <tr>
           <th>Nombre</th>
+          <th>Sección</th> {/* 👈 Nueva columna */}
           <th>Tamaño</th>
           <th>Fecha</th>
           <th>Acciones</th>
@@ -24,10 +24,11 @@ const DocumentList: React.FC<Props> = ({ documents, onView, onDelete, onDownload
         {documents.map((doc) => (
           <tr key={doc.id}>
             <td>{doc.name}</td>
+            <td>{doc.menuId}</td> {/* 👈 Mostramos la sección */}
             <td>{(doc.size / 1024).toFixed(2)} KB</td>
-            <td>{doc.uploadDate.toLocaleDateString()}</td>
+            <td>{new Date(doc.uploadDate).toLocaleDateString()}</td>
             <td>
-              <button onClick={() => onView(doc)}>👁 Ver</button> {/* 👈 pasa doc entero */}
+              <button onClick={() => onView(doc)}>👁 Ver</button>
               <button onClick={() => onDownload(doc)}>⬇ Descargar</button>
               <button onClick={() => onDelete(doc.id)}>🗑 Eliminar</button>
             </td>

@@ -212,3 +212,87 @@
     height: 90vh;
   }
 }
+.modal-content.small {
+  width: 400px;
+  height: auto;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background: #ddd;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #4caf50;
+  border: none;
+  padding: 8px 16px;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+/* 🔍 Caja de búsqueda con botón */
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.search-input {
+  border: none;
+  padding: 8px 12px;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+}
+
+.search-btn {
+  background: #f97316;
+  border: none;
+  padding: 8px 12px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.search-btn:hover {
+  background: #ea580c;
+}
+
+/* Botón eliminar en modal */
+.delete-btn {
+  background: #dc2626;
+  border: none;
+  padding: 8px 16px;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+

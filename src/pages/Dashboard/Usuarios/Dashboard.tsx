@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import type { MenuOption } from "../../../types";
-import type { MenuItem, MenuSection } from "../../../types";
+import type { MenuOption, MenuItem, MenuSection, Document } from "../../../types";
 import "./Dashboard.css";
 import { Repeat } from 'lucide-react';
 
@@ -20,25 +19,38 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSection, setOpenSection] = useState<string | null>(null);
+const [documents, setDocuments] = useState<Document[]>([]);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("menuSections");
-    if (stored) {
-      setSections(JSON.parse(stored));
-    }
-  }, []);
+useEffect(() => {
+  const storedSections = localStorage.getItem("menuSections");
+  if (storedSections) {
+    setSections(JSON.parse(storedSections));
+  }
 
-  const renderMenu = (items: MenuItem[], level = 0) => (
-    <ul className={`menu level-${level}`}>
-      {items.map((item) => (
+  const storedDocs = localStorage.getItem("documents");
+  if (storedDocs) {
+    setDocuments(JSON.parse(storedDocs));
+  }
+}, []);
+
+
+const renderMenu = (items: MenuItem[], level = 0) => (
+  <ul className={`menu level-${level}`}>
+    {items.map((item) => {
+      // 🔑 documentos asignados a este menú
+      const docsForMenu = documents.filter((doc) => doc.menuId === item.id);
+
+      return (
         <li key={item.id}>
           <div
             className={`menu-item ${item.children ? "has-children" : ""} ${
               activeMenu === item.option ? "active" : ""
             }`}
             onClick={() => {
-              if (item.url) {
-                window.open(item.url, "_blank");
+              if (docsForMenu.length === 0 && item.children) return; // expandir hijos
+              if (docsForMenu.length > 0) {
+                // abrir primer documento o mostrar lista
+                window.open(docsForMenu[0].url, "_blank");
               } else if (item.option) {
                 setActiveMenu(item.option as MenuOption);
               }
@@ -46,11 +58,26 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
           >
             {item.title}
           </div>
+
+          {/* 👇 Mostrar documentos dentro del menú */}
+          {docsForMenu.length > 0 && (
+            <ul className="menu-docs">
+              {docsForMenu.map((doc) => (
+                <li key={doc.id}>
+                  <a href={doc.url} target="_blank" rel="noreferrer">
+                    📄 {doc.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
           {item.children && renderMenu(item.children, level + 1)}
         </li>
-      ))}
-    </ul>
-  );
+      );
+    })}
+  </ul>
+);
 
   return (
     <div className="dashboard-top-layout">
