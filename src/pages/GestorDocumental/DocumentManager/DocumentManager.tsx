@@ -1,3 +1,4 @@
+// DocumentManager.tsx
 import React, { useState, useEffect, useRef } from "react";
 import DocumentUpload from "../DocumentUpload/DocumentUpload";
 import DocumentListPage from "../DocumentListPage";
@@ -21,10 +22,12 @@ const DocumentManager: React.FC = () => {
   const { sections } = useMenu();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [modalType, setModalType] = useState<"edit" | "menu" | "delete" | null>(null);
   const [modalDoc, setModalDoc] = useState<Document | null>(null);
-  const [tempValue, setTempValue] = useState("");
+  const [modalType, setModalType] = useState<"edit" | "delete" | null>(null);
+  const [tempName, setTempName] = useState("");
+  const [tempMenuId, setTempMenuId] = useState("");
+  const [tempFile, setTempFile] = useState<File | null>(null);
+
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
   // 📌 Cargar documentos del backend
@@ -50,11 +53,6 @@ const DocumentManager: React.FC = () => {
 
       const newDoc = await res.json();
       setDocuments((prev) => [...prev, newDoc]);
-
-      // 🚨 Abrir modal para asignar sección
-      setModalDoc(newDoc);
-      setModalType("menu");
-      setTempValue("");
     }
   };
 
@@ -78,60 +76,55 @@ const DocumentManager: React.FC = () => {
     setModalDoc(null);
   };
 
+  // 📌 Descargar documento
   const handleDownload = (doc: Document) => {
     window.open(doc.url, "_blank");
   };
 
+  // 📌 Editar documento (abrir modal)
   const handleEdit = (doc: Document) => {
     setModalType("edit");
     setModalDoc(doc);
-    setTempValue(doc.name);
+    setTempName(doc.name);
+    setTempMenuId(doc.menuId || "");
+    setTempFile(null);
   };
 
-  const handleView = (doc: Document) => {
-    setSelectedDocument(doc);
-  };
-
-  // 📌 Guardar cambios (editar nombre o asignar sección)
+  // 📌 Guardar cambios del modal
   const saveModalChanges = async () => {
     if (!modalDoc) return;
 
-    let updatedDoc = { ...modalDoc };
-
-    if (modalType === "edit") {
-      updatedDoc = { ...modalDoc, name: tempValue };
+    const formData = new FormData();
+    formData.append("name", tempName);
+    formData.append("menuId", tempMenuId);
+    if (tempFile) {
+      formData.append("file", tempFile);
     }
 
-    if (modalType === "menu") {
-      updatedDoc = { ...modalDoc, menuId: tempValue };
-    }
-
-    // 👉 Guardar en backend
-    await fetch(`${API_URL}/documents/${modalDoc.id}`, {
+    const res = await fetch(`${API_URL}/documents/${modalDoc.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedDoc),
+      body: formData,
     });
 
-    // 👉 Actualizar en frontend
+    const updatedDoc = await res.json();
+
     setDocuments((prev) =>
-      prev.map((d) => (d.id === modalDoc.id ? updatedDoc : d))
+      prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d))
     );
 
     setModalType(null);
     setModalDoc(null);
-    setTempValue("");
   };
 
-  const filteredDocuments = documents.filter((doc) =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 📌 Ver documento
+  const handleView = (doc: Document) => {
+    setSelectedDocument(doc);
+  };
 
   return (
     <div className="document-manager">
       <div className="document-header">
         <h2>Gestión de Documentos</h2>
-
         <button
           className="subirdocs-btn"
           onClick={() => uploadRef.current?.triggerUpload()}
@@ -141,7 +134,7 @@ const DocumentManager: React.FC = () => {
       </div>
 
       <DocumentListPage
-        documents={filteredDocuments}
+        documents={documents}
         sections={sections}
         onDelete={handleDelete}
         onDownload={handleDownload}
@@ -155,13 +148,18 @@ const DocumentManager: React.FC = () => {
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setSelectedDocument(null)}>✖</button>
+            <button
+              className="close-btn"
+              onClick={() => setSelectedDocument(null)}
+            >
+              ✖
+            </button>
             <DocumentViewer document={selectedDocument} />
           </div>
         </div>
       )}
 
-      {/* Modal de editar / menú / eliminar */}
+      {/* Modal de editar / eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -172,42 +170,55 @@ const DocumentManager: React.FC = () => {
                   Estás a punto de eliminar <b>{modalDoc?.name}</b>.
                 </p>
                 <div className="modal-actions">
-                  <button className="cancel-btn" onClick={() => setModalType(null)}>Cancelar</button>
-                  <button className="delete-btn" onClick={confirmDelete}>Eliminar</button>
+                  <button className="cancel-btn" onClick={() => setModalType(null)}>
+                    Cancelar
+                  </button>
+                  <button className="delete-btn" onClick={confirmDelete}>
+                    Eliminar
+                  </button>
                 </div>
               </>
             ) : (
               <>
-                <h3>
-                  {modalType === "edit"
-                    ? "Editar nombre del documento"
-                    : "Asignar apartado del menú"}
-                </h3>
+                <h3>Editar documento</h3>
+                <label>Nombre:</label>
+                <input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  className="modal-input"
+                />
 
-                {modalType === "edit" ? (
-                  <input
-                    type="text"
-                    value={tempValue}
-                    onChange={(e) => setTempValue(e.target.value)}
-                    placeholder="Nuevo nombre..."
-                    className="modal-input"
-                  />
-                ) : (
-                  <select
-                    value={tempValue}
-                    onChange={(e) => setTempValue(e.target.value)}
-                    className="modal-input"
-                  >
-                    <option value="">-- Seleccionar sección --</option>
-                    {sections.map((sec) => (
-                      <option key={sec.id} value={sec.id}>{sec.title}</option>
-                    ))}
-                  </select>
-                )}
+                <label>Sección:</label>
+                <select
+                  value={tempMenuId}
+                  onChange={(e) => setTempMenuId(e.target.value)}
+                  className="modal-input"
+                >
+                  <option value="">-- Seleccionar sección --</option>
+                  {sections.map((sec) => (
+                    <option key={sec.id} value={sec.id}>
+                      {sec.title}
+                    </option>
+                  ))}
+                </select>
+
+                <label>Reemplazar archivo:</label>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setTempFile(e.target.files ? e.target.files[0] : null)
+                  }
+                  className="modal-input"
+                />
 
                 <div className="modal-actions">
-                  <button className="cancel-btn" onClick={() => setModalType(null)}>Cancelar</button>
-                  <button className="save-btn" onClick={saveModalChanges}>Guardar</button>
+                  <button className="cancel-btn" onClick={() => setModalType(null)}>
+                    Cancelar
+                  </button>
+                  <button className="save-btn" onClick={saveModalChanges}>
+                    Guardar
+                  </button>
                 </div>
               </>
             )}
