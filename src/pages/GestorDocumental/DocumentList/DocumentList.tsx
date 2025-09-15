@@ -14,7 +14,7 @@ const DocumentList: React.FC<Props> = ({ documents, onView, onDelete, onDownload
       <thead>
         <tr>
           <th>Nombre</th>
-          <th>Sección</th> {/* 👈 Nueva columna */}
+          <th>Sección</th> 
           <th>Tamaño</th>
           <th>Fecha</th>
           <th>Acciones</th>
