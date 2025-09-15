@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DocumentUpload from "../DocumentUpload/DocumentUpload";
 import DocumentListPage from "../DocumentListPage";
 import "./DocumentManager.css";
@@ -15,8 +15,10 @@ export interface Document {
   menuId?: string;
 }
 
+const API_URL = "http://localhost:4000";
+
 const DocumentManager: React.FC = () => {
-  const { sections } = useMenu(); // ✅ obtenemos secciones del menú
+  const { sections } = useMenu();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,42 +27,38 @@ const DocumentManager: React.FC = () => {
   const [tempValue, setTempValue] = useState("");
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
-  const handleUpload = (files: FileList) => {
+  // 📌 Cargar documentos del backend
+  useEffect(() => {
+    fetch(`${API_URL}/documents`)
+      .then((res) => res.json())
+      .then((data) => setDocuments(data))
+      .catch((err) => console.error("Error cargando docs:", err));
+  }, []);
+
+  // 📌 Subir documentos al backend
+  const handleUpload = async (files: FileList) => {
     const fileArray = Array.from(files);
 
-    Promise.all(
-      fileArray.map(
-        (file) =>
-          new Promise<Document>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const newDoc: Document = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                uploadDate: new Date(),
-                url: e.target?.result as string,
-              };
+    for (const file of fileArray) {
+      const formData = new FormData();
+      formData.append("file", file);
 
-              setModalType("menu"); // abrir modal para seleccionar sección
-              setModalDoc(newDoc);
-              setTempValue("");
-              resolve(newDoc);
-            };
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          })
-      )
-    )
-      .then((newDocs) => {
-        setDocuments((prev) => [...prev, ...newDocs]);
-        const stored = JSON.parse(localStorage.getItem("documents") || "[]");
-        localStorage.setItem("documents", JSON.stringify([...stored, ...newDocs]));
-      })
-      .catch((err) => console.error("Error leyendo archivos:", err));
+      const res = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const newDoc = await res.json();
+      setDocuments((prev) => [...prev, newDoc]);
+
+      // 🚨 Abrir modal para asignar sección
+      setModalDoc(newDoc);
+      setModalType("menu");
+      setTempValue("");
+    }
   };
 
+  // 📌 Eliminar documento
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
     if (!doc) return;
@@ -68,20 +66,20 @@ const DocumentManager: React.FC = () => {
     setModalDoc(doc);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!modalDoc) return;
+
+    await fetch(`${API_URL}/documents/${modalDoc.id}`, {
+      method: "DELETE",
+    });
+
     setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
     setModalType(null);
     setModalDoc(null);
   };
 
   const handleDownload = (doc: Document) => {
-    const link = document.createElement("a");
-    link.href = doc.url;
-    link.download = doc.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(doc.url, "_blank");
   };
 
   const handleEdit = (doc: Document) => {
@@ -94,32 +92,31 @@ const DocumentManager: React.FC = () => {
     setSelectedDocument(doc);
   };
 
-  const saveModalChanges = () => {
+  // 📌 Guardar cambios (editar nombre o asignar sección)
+  const saveModalChanges = async () => {
     if (!modalDoc) return;
 
+    let updatedDoc = { ...modalDoc };
+
     if (modalType === "edit") {
-      setDocuments((prev) =>
-        prev.map((d) => (d.id === modalDoc.id ? { ...d, name: tempValue } : d))
-      );
+      updatedDoc = { ...modalDoc, name: tempValue };
     }
 
     if (modalType === "menu") {
-      setDocuments((prev) =>
-        prev.map((d) =>
-          d.id === modalDoc.id ? { ...d, menuId: tempValue } : d
-        )
-      );
-
-      const stored = JSON.parse(localStorage.getItem("documents") || "[]");
-      localStorage.setItem(
-        "documents",
-        JSON.stringify(
-          stored.map((d: Document) =>
-            d.id === modalDoc.id ? { ...d, menuId: tempValue } : d
-          )
-        )
-      );
+      updatedDoc = { ...modalDoc, menuId: tempValue };
     }
+
+    // 👉 Guardar en backend
+    await fetch(`${API_URL}/documents/${modalDoc.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedDoc),
+    });
+
+    // 👉 Actualizar en frontend
+    setDocuments((prev) =>
+      prev.map((d) => (d.id === modalDoc.id ? updatedDoc : d))
+    );
 
     setModalType(null);
     setModalDoc(null);
@@ -145,7 +142,7 @@ const DocumentManager: React.FC = () => {
 
       <DocumentListPage
         documents={filteredDocuments}
-        sections={sections} // ✅ pasamos secciones al listado
+        sections={sections}
         onDelete={handleDelete}
         onDownload={handleDownload}
         onEdit={handleEdit}
@@ -154,7 +151,7 @@ const DocumentManager: React.FC = () => {
 
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
 
-      {/* Modal para ver documentos */}
+      {/* Modal de visor */}
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -164,7 +161,7 @@ const DocumentManager: React.FC = () => {
         </div>
       )}
 
-      {/* Modal para editar / menú / eliminar */}
+      {/* Modal de editar / menú / eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -173,7 +170,6 @@ const DocumentManager: React.FC = () => {
                 <h3>¿Eliminar documento?</h3>
                 <p>
                   Estás a punto de eliminar <b>{modalDoc?.name}</b>.
-                  Esta acción no se puede deshacer.
                 </p>
                 <div className="modal-actions">
                   <button className="cancel-btn" onClick={() => setModalType(null)}>Cancelar</button>

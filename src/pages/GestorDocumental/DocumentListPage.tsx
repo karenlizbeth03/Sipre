@@ -12,7 +12,7 @@ import "./DocumentListPage.css";
 
 interface Props {
   documents: Document[];
-  sections: MenuSection[]; // ✅ recibimos secciones
+  sections: MenuSection[]; 
   onDelete: (id: string) => void;
   onDownload: (doc: Document) => void;
   onEdit: (doc: Document) => void;
