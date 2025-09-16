@@ -20,7 +20,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({}); // 👈 controlar items abiertos
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const storedSections = localStorage.getItem("menuSections");
@@ -37,7 +37,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const toggleItem = (itemId: string) => {
     setOpenItems((prev) => ({
       ...prev,
-      [itemId]: !prev[itemId], 
+      [itemId]: !prev[itemId],
     }));
   };
 
@@ -55,7 +55,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               }`}
               onClick={() => {
                 if (docsForMenu.length > 0 || item.children) {
-                  toggleItem(item.id); // 👈 expandir/cerrar
+                  toggleItem(item.id);
                 } else if (item.option) {
                   setActiveMenu(item.option as MenuOption);
                 }
@@ -64,17 +64,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               {item.title}
             </div>
 
-            {/* 👇 Mostrar documentos solo si el item está abierto */}
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
                 {docsForMenu.map((doc) => (
                   <li key={doc.id} className="doc-item">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="doc-link"
-                    >
+                    <a href={doc.url} target="_blank" rel="noreferrer">
                       📄 {doc.name}
                     </a>
                   </li>
@@ -82,7 +76,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </ul>
             )}
 
-            {/* 👇 Mostrar hijos solo si está abierto */}
             {isOpen && item.children && renderMenu(item.children, level + 1)}
           </li>
         );
@@ -113,7 +106,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 {section.title}
               </h3>
 
-              {openSection === section.id && renderMenu(section.items, 0)}
+              {openSection === section.id && renderMenu(section.items)}
             </div>
           ))}
 

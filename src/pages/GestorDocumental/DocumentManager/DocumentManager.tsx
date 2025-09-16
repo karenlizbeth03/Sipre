@@ -11,7 +11,7 @@ export interface Document {
   name: string;
   type: string;
   size: number;
-  uploadDate: Date;
+  uploadDate: string;
   url: string;
   menuId?: string;
 }
@@ -120,6 +120,15 @@ const DocumentManager: React.FC = () => {
   const handleView = (doc: Document) => {
     setSelectedDocument(doc);
   };
+  const handleSectionChange = (docId: string, sectionId: string) => {
+  // Aquí puedes actualizar el estado de tus documentos
+  setDocuments((prevDocs) =>
+    prevDocs.map((doc) =>
+      doc.id === docId ? { ...doc, menuId: sectionId } : doc
+    )
+  );
+};
+
 
   return (
     <div className="document-manager">
@@ -140,6 +149,7 @@ const DocumentManager: React.FC = () => {
         onDownload={handleDownload}
         onEdit={handleEdit}
         onView={handleView}
+        onSectionChange={handleSectionChange}
       />
 
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />

@@ -20,7 +20,7 @@ export interface Document {
   name: string;
   type: string;
   size: number;
-  uploadDate: Date;
+  uploadDate: string;
   url: string;
   menuId?: string; // 🔑 para saber a qué menú pertenece
 }

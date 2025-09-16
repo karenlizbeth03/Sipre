@@ -6,7 +6,7 @@ import {
   AiOutlineEye,
   AiOutlineSearch,
 } from "react-icons/ai";
-import type { Document } from "./DocumentManager/DocumentManager";
+import type { Document } from "../../types";
 import type { MenuSection } from "../../types";
 import "./DocumentListPage.css";
 
@@ -17,6 +17,7 @@ interface Props {
   onDownload: (doc: Document) => void;
   onEdit: (doc: Document) => void;
   onView: (doc: Document) => void;
+  onSectionChange: (docId: string, sectionId: string) => void;
 }
 
 const DocumentListPage: React.FC<Props> = ({
@@ -26,6 +27,7 @@ const DocumentListPage: React.FC<Props> = ({
   onDownload,
   onEdit,
   onView,
+  onSectionChange,
 }) => {
   const [search, setSearch] = useState("");
 
@@ -56,7 +58,7 @@ const DocumentListPage: React.FC<Props> = ({
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Sección</th> {/* ✅ nueva columna */}
+              <th>Sección</th>
               <th>Tipo</th>
               <th>Tamaño</th>
               <th>Subido</th>
@@ -64,25 +66,40 @@ const DocumentListPage: React.FC<Props> = ({
             </tr>
           </thead>
           <tbody>
-            {filteredDocs.map((doc) => {
-              const sectionTitle =
-                sections.find((sec) => sec.id === doc.menuId)?.title || "-";
-              return (
-                <tr key={doc.id}>
-                  <td>{doc.name}</td>
-                  <td>{sectionTitle}</td>
-                  <td>{doc.type}</td>
-                  <td>{(doc.size / 1024).toFixed(2)} KB</td>
-                  <td>{new Date(doc.uploadDate).toLocaleDateString()}</td>
-                  <td>
-                    <button onClick={() => onView(doc)} title="Ver"><AiOutlineEye /></button>
-                    <button onClick={() => onEdit(doc)} title="Editar"><AiOutlineEdit /></button>
-                    <button onClick={() => onDownload(doc)} title="Descargar"><AiOutlineDownload /></button>
-                    <button onClick={() => onDelete(doc.id)} title="Eliminar"><AiOutlineDelete /></button>
-                  </td>
-                </tr>
-              );
-            })}
+            {filteredDocs.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.name}</td>
+                <td>
+                  <select
+                    value={doc.menuId || ""}
+                    onChange={(e) => onSectionChange(doc.id, e.target.value)}
+                  >
+                    <option value="">- Seleccionar -</option>
+                    {sections.map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.title}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td>{doc.type}</td>
+                <td>{(doc.size / 1024).toFixed(2)} KB</td>
+                <td>{new Date(doc.uploadDate).toLocaleDateString()}</td><td>
+                  <button onClick={() => onView(doc)} title="Ver">
+                    <AiOutlineEye />
+                  </button>
+                  <button onClick={() => onEdit(doc)} title="Editar">
+                    <AiOutlineEdit />
+                  </button>
+                  <button onClick={() => onDownload(doc)} title="Descargar">
+                    <AiOutlineDownload />
+                  </button>
+                  <button onClick={() => onDelete(doc.id)} title="Eliminar">
+                    <AiOutlineDelete />
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
