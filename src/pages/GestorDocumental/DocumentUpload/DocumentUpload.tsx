@@ -1,59 +1,36 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react'
-import './DocumentUpload.css'
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import "./DocumentUpload.css";
 
 export interface DocumentUploadProps {
-  onUpload: (files: FileList) => void
+  onUpload: (files: FileList, menuId: string) => void; // ✅ ahora acepta menuId
 }
 
 export interface DocumentUploadHandle {
-  triggerUpload: () => void
+  triggerUpload: (menuId: string) => void; // ✅ trigger recibe menuId
 }
 
 const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
   ({ onUpload }, ref) => {
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const currentMenuId = useRef<string>("");
 
     useImperativeHandle(ref, () => ({
-      triggerUpload: () => {
-        fileInputRef.current?.click()
+      triggerUpload: (menuId: string) => {
+        currentMenuId.current = menuId;
+        fileInputRef.current?.click();
       },
-    }))
+    }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
-        onUpload(e.target.files)
-        e.target.value = '' // Reset input
+        onUpload(e.target.files, currentMenuId.current);
+        e.target.value = "";
       }
-    }
+    };
 
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        onUpload(e.dataTransfer.files)
-      }
-    }
-
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-    }
-
-    return (
-      <div
-        className="document-upload"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
-      </div>
-    )
+    return <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} style={{ display: "none" }} />;
   }
-)
+);
 
-DocumentUpload.displayName = 'DocumentUpload'
-export default DocumentUpload
+DocumentUpload.displayName = "DocumentUpload";
+export default DocumentUpload;

@@ -2,32 +2,29 @@ import React, { useState } from 'react';
 import Dashboard from './pages/Dashboard/Principal/Dashboard';
 import DashboardUser from './pages/Dashboard/Usuarios/Dashboard';
 import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager';
-import Home from './components/Home';
 import MenuBuilder from './components/MenuBuilder/MenuBuilder';
-import { NavigationMenu } from './components/NavigationMenu/NavigationMenu';
 import { useMenu } from './hooks/useMenu';
 import './App.css';
-
-export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
+import type { Document, MenuOption } from './types';
 
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
   const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
-  const { sections } = useMenu(); 
+  const [filteredDocs, setFilteredDocs] = useState<Document[]>([]); // 🔹 Estado agregado
+  const { sections } = useMenu();
 
   const toggleRole = () => {
     setUserRole(prev => (prev === 'user' ? 'admin' : 'user'));
     setActiveMenu('home');
   };
 
-  const renderContent = () => {
+  // Contenido solo para admin
+  const renderAdminContent = () => {
     switch (activeMenu) {
-      case 'home':
-        return <Home />;
       case 'documents':
         return <DocumentManager />;
       case 'nuevo_menu':
-        return <MenuBuilder />; 
+        return <MenuBuilder />;
       default:
         return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }
@@ -41,26 +38,25 @@ function App() {
         </button>
       </div>
 
+      {/* Vista Admin */}
       {userRole === 'admin' && (
         <Dashboard
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
           onLogout={toggleRole}
         >
-          {renderContent()}
+          {renderAdminContent()}
         </Dashboard>
       )}
 
+      {/* Vista Usuario */}
       {userRole === 'user' && (
         <DashboardUser
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
           onLogout={toggleRole}
-        >
-          {/* 👉 Menú dinámico que el admin construyó */}
-          <NavigationMenu sections={sections} />
-          {renderContent()}
-        </DashboardUser>
+          setFilteredDocs={setFilteredDocs} // 🔹 Ahora definido
+        />
       )}
     </div>
   );

@@ -30,7 +30,6 @@ const DocumentManager: React.FC = () => {
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
-  // 📌 Cargar documentos del backend
   useEffect(() => {
     fetch(`${API_URL}/documents`)
       .then((res) => res.json())
@@ -39,24 +38,26 @@ const DocumentManager: React.FC = () => {
   }, []);
 
   // 📌 Subir documentos al backend
-  const handleUpload = async (files: FileList) => {
-    const fileArray = Array.from(files);
+const handleUpload = async (files: FileList, menuId: string) => {
+  const fileArray = Array.from(files);
 
-    for (const file of fileArray) {
-      const formData = new FormData();
-      formData.append("file", file);
+  for (const file of fileArray) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("menuId", menuId); // 🔹 importante
 
-      const res = await fetch(`${API_URL}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+    const res = await fetch(`${API_URL}/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-      const newDoc = await res.json();
-      setDocuments((prev) => [...prev, newDoc]);
-    }
-  };
+    const newDoc = await res.json();
+    setDocuments((prev) => [...prev, newDoc]);
+  }
+};
 
-  // 📌 Eliminar documento
+
+
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
     if (!doc) return;
@@ -153,6 +154,7 @@ const DocumentManager: React.FC = () => {
       />
 
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
+
 
       {/* Modal de visor */}
       {selectedDocument && (
