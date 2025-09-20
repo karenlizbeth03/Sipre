@@ -5,7 +5,10 @@ import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentMa
 import MenuBuilder from './components/MenuBuilder/MenuBuilder';
 import { useMenu } from './hooks/useMenu';
 import './App.css';
-import type { Document, MenuOption } from './types';
+import type { Document } from './types';
+
+
+export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
 
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
