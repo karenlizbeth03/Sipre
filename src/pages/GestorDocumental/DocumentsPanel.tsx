@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Document } from "../../types";
+import {
+  AiOutlineFileExcel,
+  AiOutlineEye,
+  AiOutlineDownload,
+} from "react-icons/ai";
 import "./DocumentsPanel.css";
 
 interface DocumentsPanelProps {
@@ -7,22 +12,67 @@ interface DocumentsPanelProps {
 }
 
 const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+
   if (!documents || documents.length === 0) {
     return <p>No hay documentos para esta sección.</p>;
   }
 
   return (
     <div className="documents-panel">
-      <h2>Documentos</h2>
-      <ul>
+      <h2>📂 Documentos</h2>
+      <div className="doc-grid">
         {documents.map((doc) => (
-          <li key={doc.id} className="doc-item">
-            <a href={doc.url} target="_blank" rel="noreferrer">
-              📄 {doc.name}
-            </a>
-          </li>
+          <div key={doc.id} className="doc-card">
+            <div className="doc-icon">
+              <AiOutlineFileExcel size={40} color="#2e7d32" />
+            </div>
+            <div className="doc-info">
+              <p className="doc-name">{doc.name}</p>
+              <div className="doc-actions">
+                <button
+                  className="icon-btn"
+                  onClick={() => setPreviewDoc(doc)}
+                  title="Ver"
+                >
+                  <AiOutlineEye />
+                </button>
+                <a
+                  href={doc.url}
+                  download={doc.name}
+                  className="icon-btn"
+                  title="Descargar"
+                >
+                  <AiOutlineDownload />
+                </a>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
+
+      {previewDoc && (
+        <div className="preview-modal">
+          <div className="preview-content">
+            <h3>👁️ {previewDoc.name}</h3>
+            {previewDoc.type.includes("pdf") ? (
+              <iframe
+                src={previewDoc.url}
+                title={previewDoc.name}
+                className="doc-preview"
+              />
+            ) : (
+              <p>⚠️ Este tipo de archivo no se puede previsualizar aquí.</p>
+            )}
+            <button
+              className="close-btn"
+              onClick={() => setPreviewDoc(null)}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

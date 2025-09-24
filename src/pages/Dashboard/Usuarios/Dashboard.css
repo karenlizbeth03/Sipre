@@ -117,3 +117,49 @@
 .menu.level-2 > li:hover > .menu.level-3 {
   display: block;
 }
+.doc-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease;
+}
+
+.doc-item:hover {
+  transform: translateY(-3px);
+}
+
+.doc-icon {
+  margin-right: 12px;
+  color: #444;
+}
+
+.doc-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.doc-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  color: #555;
+  font-size: 20px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.icon-btn:hover {
+  color: #1976d2;
+}

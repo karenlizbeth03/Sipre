@@ -4,6 +4,14 @@ import "./Dashboard.css";
 import { Repeat } from "lucide-react";
 import Home from "../../../components/Home";
 import DocumentsPanel from "../../GestorDocumental/DocumentsPanel";
+import {
+  AiOutlineFilePdf,
+  AiOutlineFileWord,
+  AiOutlineFileExcel,
+  AiOutlineFile,
+  AiOutlineEye,
+  AiOutlineDownload,
+} from "react-icons/ai"
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -165,20 +173,51 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   {activeMenu === "home" && <Home documents={documents} />}
   {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
 
-  {/* 🔹 Si se seleccionó una sección o submenú, mostrar sus docs */}
   {activeMenu !== "home" && activeMenu !== "documents" && (
     <div>
-      <h2> Estás en: <b>{activeMenu}</b></h2>
+      <h2>
+        Estás en: <b>{activeMenu}</b>
+      </h2>
 
       <ul className="doc-list">
         {filteredDocs.length > 0 ? (
-          filteredDocs.map(doc => (
-            <li key={doc.id}>
-              <a href={doc.url} target="_blank" rel="noreferrer">
-                📄 {doc.name}
-              </a>
-            </li>
-          ))
+          filteredDocs.map((doc) => {
+            // Elegimos ícono según tipo de archivo
+            let FileIcon = AiOutlineFile;
+            if (doc.type.includes("pdf")) FileIcon = AiOutlineFilePdf;
+            if (doc.type.includes("word") || doc.type.includes("doc"))
+              FileIcon = AiOutlineFileWord;
+            if (doc.type.includes("excel") || doc.type.includes("xls"))
+              FileIcon = AiOutlineFileExcel;
+
+            return (
+              <li key={doc.id} className="doc-item">
+                <div className="doc-icon">
+                  <FileIcon size={28} />
+                </div>
+                <span className="doc-name">{doc.name}</span>
+                <div className="doc-actions">
+                  <a
+                    href={doc.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Ver"
+                    className="icon-btn"
+                  >
+                    <AiOutlineEye />
+                  </a>
+                  <a
+                    href={doc.url}
+                    download={doc.name}
+                    title="Descargar"
+                    className="icon-btn"
+                  >
+                    <AiOutlineDownload />
+                  </a>
+                </div>
+              </li>
+            );
+          })
         ) : (
           <p>No hay documentos en esta sección.</p>
         )}
@@ -186,10 +225,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     </div>
   )}
 </main>
-
-
-
-
     </div>
   );
 };
