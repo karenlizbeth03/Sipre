@@ -35,6 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
+  
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>

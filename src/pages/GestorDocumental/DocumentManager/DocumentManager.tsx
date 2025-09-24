@@ -122,12 +122,21 @@ const handleUpload = async (files: FileList, menuId: string) => {
     setSelectedDocument(doc);
   };
   const handleSectionChange = (docId: string, sectionId: string) => {
-  // Aquí puedes actualizar el estado de tus documentos
-  setDocuments((prevDocs) =>
-    prevDocs.map((doc) =>
-      doc.id === docId ? { ...doc, menuId: sectionId } : doc
-    )
+  const updatedDocs = documents.map((doc) =>
+    doc.id === docId ? { ...doc, menuId: sectionId } : doc
   );
+   setDocuments(updatedDocs);
+
+  // 🔹 Guardar en localStorage
+  localStorage.setItem("documents", JSON.stringify(updatedDocs));
+
+  // 🔹 (Opcional) Guardar también en el backend
+  fetch(`http://localhost:4000/documents/${docId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ menuId: sectionId }),
+  }).catch((err) => console.error("❌ Error guardando en backend:", err));
+
 };
 
 
