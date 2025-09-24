@@ -151,10 +151,16 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         </nav>
       </header>
 
-      <main className="dashboard-content">
-        {activeMenu === "home" && <Home documents={documents} />}
-        {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
-      </main>
+     <main className="dashboard-content">
+  {activeMenu === "home" && <Home documents={documents} />}
+  {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
+  
+  {/* 🔹 Mostrar el nombre del menú si no es home ni documents */}
+  {activeMenu !== "home" && activeMenu !== "documents" && (
+    <h2>📌 Estás en: {activeMenu}</h2>
+  )}
+</main>
+
     </div>
   );
 };
