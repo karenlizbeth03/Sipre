@@ -58,6 +58,7 @@ function App() {
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
           onLogout={toggleRole}
+          filteredDocs={filteredDocs} 
           setFilteredDocs={setFilteredDocs} // 🔹 Ahora definido
         />
       )}

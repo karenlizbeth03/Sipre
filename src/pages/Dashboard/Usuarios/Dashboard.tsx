@@ -10,11 +10,13 @@ interface DashboardUserProps {
   setActiveMenu: React.Dispatch<React.SetStateAction<MenuOption>>;
   onLogout: () => void;
   setFilteredDocs: React.Dispatch<React.SetStateAction<Document[]>>;
+  filteredDocs: Document[];
 }
 
 const DashboardUser: React.FC<DashboardUserProps> = ({
   activeMenu,
   setActiveMenu,
+  filteredDocs,
   onLogout,
   setFilteredDocs,
 }) => {
@@ -34,7 +36,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       console.warn("⚠️ No se encontraron menús configurados. Contacta al administrador.");
     }
 
-    // 🔹 Cargar documentos desde el backend
     const fetchDocuments = async () => {
       try {
         console.info("⏳ Cargando documentos desde el backend...");
@@ -161,13 +162,31 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       </header>
 
       <main className="dashboard-content">
-        {activeMenu === "home" && <Home documents={documents} />}
-        {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
+  {activeMenu === "home" && <Home documents={documents} />}
+  {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
 
-        {activeMenu !== "home" && activeMenu !== "documents" && (
-          <h2> Estás en: <b>{activeMenu}</b></h2>
+  {/* 🔹 Si se seleccionó una sección o submenú, mostrar sus docs */}
+  {activeMenu !== "home" && activeMenu !== "documents" && (
+    <div>
+      <h2> Estás en: <b>{activeMenu}</b></h2>
+
+      <ul className="doc-list">
+        {filteredDocs.length > 0 ? (
+          filteredDocs.map(doc => (
+            <li key={doc.id}>
+              <a href={doc.url} target="_blank" rel="noreferrer">
+                📄 {doc.name}
+              </a>
+            </li>
+          ))
+        ) : (
+          <p>No hay documentos en esta sección.</p>
         )}
-      </main>
+      </ul>
+    </div>
+  )}
+</main>
+
 
 
 
