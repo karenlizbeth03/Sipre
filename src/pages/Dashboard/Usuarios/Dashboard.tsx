@@ -25,7 +25,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // 🔹 Cargar secciones desde localStorage
     const storedSections = localStorage.getItem("menuSections");
     if (storedSections) {
       const parsedSections: MenuSection[] = JSON.parse(storedSections);
@@ -68,8 +67,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const handleMenuClick = (item: MenuItem) => {
     const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
     setFilteredDocs(docsForMenu);
-    setActiveMenu(item.option as MenuOption);
+
+    setActiveMenu((item.option || item.title) as MenuOption);
   };
+
 
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
@@ -80,12 +81,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${item.children ? "has-children" : ""} ${
-                activeMenu === item.option ? "active" : ""
-              }`}
+              className={`menu-item ${item.children ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""
+                }`}
               onClick={() => {
+
                 if (item.children) {
                   toggleItem(item.id);
+                  handleMenuClick(item);
                 } else {
                   handleMenuClick(item);
                 }
@@ -93,6 +95,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             >
               {item.title}
             </div>
+
 
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
@@ -132,12 +135,18 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               <div key={section.id} className="menu-section">
                 <h3
                   className={`menu-section-title ${openSection === section.id ? "open" : ""}`}
-                  onClick={() =>
-                    setOpenSection(openSection === section.id ? null : section.id)
-                  }
+                  onClick={() => {
+                    setOpenSection(openSection === section.id ? null : section.id);
+
+                    const docsForMenu = documents.filter(doc => doc.menuId === section.id.toString());
+                    setFilteredDocs(docsForMenu);
+
+                    setActiveMenu(section.title as MenuOption);
+                  }}
                 >
                   {section.title}
                 </h3>
+
 
                 {openSection === section.id && renderMenu(section.items)}
               </div>
@@ -151,15 +160,16 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         </nav>
       </header>
 
-     <main className="dashboard-content">
-  {activeMenu === "home" && <Home documents={documents} />}
-  {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
-  
-  {/* 🔹 Mostrar el nombre del menú si no es home ni documents */}
-  {activeMenu !== "home" && activeMenu !== "documents" && (
-    <h2>📌 Estás en: {activeMenu}</h2>
-  )}
-</main>
+      <main className="dashboard-content">
+        {activeMenu === "home" && <Home documents={documents} />}
+        {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
+
+        {activeMenu !== "home" && activeMenu !== "documents" && (
+          <h2> Estás en: <b>{activeMenu}</b></h2>
+        )}
+      </main>
+
+
 
     </div>
   );

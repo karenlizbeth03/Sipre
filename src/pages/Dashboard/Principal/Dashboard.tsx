@@ -50,9 +50,15 @@ const Dashboard: React.FC<DashboardProps> = ({
             className={`menu-item ${item.children ? 'has-children' : ''} ${
               activeMenu === item.option ? 'active' : ''
             }`}
-            onClick={() =>
-              item.children ? toggleMenu(item.label) : item.option && setActiveMenu(item.option)
-            }
+            onClick={() => {
+  if (item.children) {
+    toggleMenu(item.label);
+  } else {
+    // 🔹 Usa label como menú activo si no hay option
+    setActiveMenu((item.option || item.label) as MenuOption);
+  }
+}}
+
           >
             {item.label}
           </div>
