@@ -5,9 +5,9 @@ import './DocumentViewer.css';
 
 export interface AppDocument {
   name: string;
-  url: string;      // URL original del archivo
+  url: string;      
   type: string;
-  urlPdf?: string;  // PDF generado por el backend
+  urlPdf?: string;  
 }
 
 interface DocumentViewerProps {

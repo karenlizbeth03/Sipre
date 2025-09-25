@@ -37,14 +37,13 @@ const DocumentManager: React.FC = () => {
       .catch((err) => console.error("Error cargando docs:", err));
   }, []);
 
-  // 📌 Subir documentos al backend
 const handleUpload = async (files: FileList, menuId: string) => {
   const fileArray = Array.from(files);
 
   for (const file of fileArray) {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("menuId", menuId); // 🔹 importante
+    formData.append("menuId", menuId); 
 
     const res = await fetch(`${API_URL}/upload`, {
       method: "POST",
@@ -77,12 +76,10 @@ const handleUpload = async (files: FileList, menuId: string) => {
     setModalDoc(null);
   };
 
-  // 📌 Descargar documento
   const handleDownload = (doc: Document) => {
     window.open(doc.url, "_blank");
   };
 
-  // 📌 Editar documento (abrir modal)
   const handleEdit = (doc: Document) => {
     setModalType("edit");
     setModalDoc(doc);
@@ -91,7 +88,6 @@ const handleUpload = async (files: FileList, menuId: string) => {
     setTempFile(null);
   };
 
-  // 📌 Guardar cambios del modal
   const saveModalChanges = async () => {
     if (!modalDoc) return;
 
@@ -117,7 +113,6 @@ const handleUpload = async (files: FileList, menuId: string) => {
     setModalDoc(null);
   };
 
-  // 📌 Ver documento
   const handleView = (doc: Document) => {
     setSelectedDocument(doc);
   };
@@ -127,10 +122,8 @@ const handleUpload = async (files: FileList, menuId: string) => {
   );
    setDocuments(updatedDocs);
 
-  // 🔹 Guardar en localStorage
   localStorage.setItem("documents", JSON.stringify(updatedDocs));
 
-  // 🔹 (Opcional) Guardar también en el backend
   fetch(`http://localhost:4000/documents/${docId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -165,7 +158,6 @@ const handleUpload = async (files: FileList, menuId: string) => {
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
 
 
-      {/* Modal de visor */}
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -180,7 +172,6 @@ const handleUpload = async (files: FileList, menuId: string) => {
         </div>
       )}
 
-      {/* Modal de editar / eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>

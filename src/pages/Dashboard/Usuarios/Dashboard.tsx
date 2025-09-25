@@ -12,6 +12,7 @@ import {
   AiOutlineEye,
   AiOutlineDownload,
 } from "react-icons/ai"
+import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -33,6 +34,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   useEffect(() => {
     const storedSections = localStorage.getItem("menuSections");
@@ -182,7 +184,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       <ul className="doc-list">
         {filteredDocs.length > 0 ? (
           filteredDocs.map((doc) => {
-            // Elegimos ícono según tipo de archivo
             let FileIcon = AiOutlineFile;
             if (doc.type.includes("pdf")) FileIcon = AiOutlineFilePdf;
             if (doc.type.includes("word") || doc.type.includes("doc"))
@@ -197,15 +198,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 </div>
                 <span className="doc-name">{doc.name}</span>
                 <div className="doc-actions">
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Ver"
+                  <button
                     className="icon-btn"
+                    onClick={() => setPreviewDoc(doc)}
+                    title="Previsualizar"
                   >
                     <AiOutlineEye />
-                  </a>
+                  </button>
                   <a
                     href={doc.url}
                     download={doc.name}
@@ -225,6 +224,21 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     </div>
   )}
 </main>
+
+{previewDoc && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <div className="modal-header">
+        <h3>{previewDoc.name}</h3>
+        <button onClick={() => setPreviewDoc(null)}>✖</button>
+      </div>
+      <div className="modal-body">
+        <DocumentViewer document={previewDoc} />
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
