@@ -11,7 +11,6 @@ import {
   AiOutlineFile,
   AiOutlineEye,
   AiOutlineDownload,
-  AiOutlineClose 
 } from "react-icons/ai"
 import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
 
@@ -173,8 +172,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       </header>
 
       <main className="dashboard-content">
-  {activeMenu === "home" && <Home />}
-  {activeMenu === "documents" && <DocumentsPanel />}
+  {activeMenu === "home" && <Home documents={documents} />}
+  {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
 
   {activeMenu !== "home" && activeMenu !== "documents" && (
     <div>
@@ -231,13 +230,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     <div className="modal-content">
       <div className="modal-header">
         <h3>{previewDoc.name}</h3>
-        <button
-          className="close-btn"
-          onClick={() => setPreviewDoc(null)}
-          aria-label="Cerrar"
-        >
-          <AiOutlineClose size={22} />
-        </button>
+        <button onClick={() => setPreviewDoc(null)}>✖</button>
       </div>
       <div className="modal-body">
         <DocumentViewer document={previewDoc} />
