@@ -55,7 +55,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   if (item.children) {
     toggleMenu(item.label);
   } else {
-    // 🔹 Usa label como menú activo si no hay option
     setActiveMenu((item.option || item.label) as MenuOption);
   }
 }}
@@ -71,11 +70,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="dashboard-top-layout">
-      {/* Header con menú */}
       <header className="dashboard-header">
         <div className="logo">Admin</div>
-
-        {/* Botón hamburguesa para móviles */}
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>
@@ -88,7 +84,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         </nav>
       </header>
 
-      {/* Contenido */}
       <main className="dashboard-content">{children}</main>
     </div>
   )

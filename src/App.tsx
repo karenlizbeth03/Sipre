@@ -6,6 +6,7 @@ import MenuBuilder from './components/MenuBuilder/MenuBuilder';
 import { useMenu } from './hooks/useMenu';
 import './App.css';
 import type { Document } from './types';
+import galaImg from './assets/gala.jpg';
 
 
 export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
@@ -28,6 +29,12 @@ function App() {
         return <DocumentManager />;
       case 'nuevo_menu':
         return <MenuBuilder />;
+      case 'home':
+        return (
+          <div>
+            <img src={galaImg} alt="Inicio" style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
+          </div>
+        );
       default:
         return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }
