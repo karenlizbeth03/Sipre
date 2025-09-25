@@ -74,7 +74,7 @@ const DocumentListPage: React.FC<Props> = ({
                     value={doc.menuId || ""}
                     onChange={(e) => onSectionChange(doc.id, e.target.value)}
                   >
-                    <option value="">- Seleccionar -</option>
+                    <option value="">-  -</option>
                     {sections.map((sec) => (
                       <option key={sec.id} value={sec.id}>
                         {sec.title}
