@@ -1,20 +1,12 @@
 import React from "react";
-import DocumentsPanel from "../pages/GestorDocumental/DocumentsPanel";
-import type { Document } from "../types";
+import GalaImage from "../assets/Gala.png"; // 🔹 Ajusta la ruta si cambia
+import "./Home.css";
 
-interface HomeProps {
-  documents: Document[];
-}
-
-const Home: React.FC<HomeProps> = ({ documents }) => {
+const Home: React.FC = () => {
   return (
     <div className="home">
-      <div className="page-content">
-        <div className="hero-section">
-          <h1>Bienvenido</h1>
-        </div>
-
-        <DocumentsPanel documents={documents} />
+      <div className="hero-section">
+        <img src={GalaImage} alt="Gala" className="home-image" />
       </div>
     </div>
   );
