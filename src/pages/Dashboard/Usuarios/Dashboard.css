@@ -205,22 +205,3 @@
   overflow: auto;
   padding: 0;
 }
-.close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #555;
-  font-size: 1.2rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 50%;
-}
-
-.close-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #e63946;
-  transform: scale(1.1);
-}

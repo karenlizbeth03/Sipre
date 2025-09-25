@@ -1,9 +1,9 @@
+/* Home.css */
 .home {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Caja contenedora */
 .hero-section {
   text-align: center;
   padding: 40px 20px;
@@ -11,15 +11,41 @@
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Imagen centrada */
-.home-image {
-  max-width: 100%;
-  max-height: 500px; /* límite opcional */
-  object-fit: contain;
+.hero-section h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.hero-section p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.feature-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-card h3 {
+  color: #333;
+  margin-top: 0;
+}
+
+.feature-card p {
+  color: #666;
 }

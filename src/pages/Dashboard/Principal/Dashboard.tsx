@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import type { MenuOption } from '../../../App'
 import './Dashboard.css'
 import { Repeat } from 'lucide-react';
-import Home from '../../../components/Home';
-import DocumentsPanel from '../../GestorDocumental/DocumentsPanel';
 
 interface DashboardProps {
   activeMenu: MenuOption
@@ -19,10 +17,6 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  /* {
-    label: 'HOME',
-    option: 'home'
-  }, */
   {
     label: 'GESTOR DE MENUS',
     children: [{ label: 'NUEVO MENU', option: 'nuevo_menu' }]
@@ -41,7 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
-
+  
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -54,16 +48,17 @@ const Dashboard: React.FC<DashboardProps> = ({
       {items.map(item => (
         <li key={item.label}>
           <div
-            className={`menu-item ${item.children ? 'has-children' : ''} ${activeMenu === item.option ? 'active' : ''
-              }`}
+            className={`menu-item ${item.children ? 'has-children' : ''} ${
+              activeMenu === item.option ? 'active' : ''
+            }`}
             onClick={() => {
-              if (item.children) {
-                toggleMenu(item.label);
-              } else {
-                // 🔹 Usa label como menú activo si no hay option
-                setActiveMenu((item.option || item.label) as MenuOption);
-              }
-            }}
+  if (item.children) {
+    toggleMenu(item.label);
+  } else {
+    // 🔹 Usa label como menú activo si no hay option
+    setActiveMenu((item.option || item.label) as MenuOption);
+  }
+}}
 
           >
             {item.label}
@@ -74,32 +69,29 @@ const Dashboard: React.FC<DashboardProps> = ({
     </ul>
   )
 
- return (
-  <div className="dashboard-top-layout">
-    <header className="dashboard-header">
-      <div className="logo">Admin</div>
+  return (
+    <div className="dashboard-top-layout">
+      {/* Header con menú */}
+      <header className="dashboard-header">
+        <div className="logo">Admin</div>
 
-      <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-        ☰
-      </button>
-
-      <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
-        {renderMenu(menuItems)}
-        <button className="logout-btn" onClick={onLogout}>
-          <Repeat />
-          <center>Cambiar Rol</center>
+        {/* Botón hamburguesa para móviles */}
+        <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          ☰
         </button>
-      </nav>
-    </header>
 
-    <main className="dashboard-content">
-      {activeMenu === 'home' && <Home />}
-      {activeMenu === 'documents' && <DocumentsPanel />}
-      {activeMenu === 'nuevo_menu' && <div>Nuevo Menú</div>}
-    </main>
-  </div>
-)
+        <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
+          {renderMenu(menuItems)}
+          <button className="logout-btn" onClick={onLogout}><Repeat />
+            <center>Cambiar Rol</center>
+          </button>
+        </nav>
+      </header>
 
+      {/* Contenido */}
+      <main className="dashboard-content">{children}</main>
+    </div>
+  )
 }
 
 export default Dashboard
