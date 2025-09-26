@@ -27,6 +27,20 @@
   text-transform: uppercase;
   letter-spacing: 0.7px;
   font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Flecha animada para acordeón de sección */
+.arrow {
+  font-size: 1.2rem;
+  color: #f4b942;
+  transition: transform 0.3s;
+  margin-left: 4px;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
 }
 
 /* Inputs y botones de sección */
@@ -79,6 +93,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s;
+  margin-left: auto;
 }
 
 .section h3 button:hover {
@@ -91,6 +106,8 @@
 .menu-list {
   list-style: none;
   padding-left: 0;
+  transition: max-height 0.4s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
 }
 
 .menu-item {

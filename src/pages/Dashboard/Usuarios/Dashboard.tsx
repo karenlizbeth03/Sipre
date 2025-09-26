@@ -88,20 +88,26 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     onLogout(); // Cambia el rol en el padre (App)
   };
 
+  const handleSectionHover = (sectionId: string) => {
+    setOpenSection(sectionId);
+  };
+  const handleSectionLeave = () => {
+    setOpenSection(null);
+  };
+
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
       {items.map(item => {
         const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
         const isOpen = openItems[item.id] || false;
+        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
 
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${item.children ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""
-                }`}
+              className={`menu-item ${hasChildren ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""}`}
               onClick={() => {
-
-                if (item.children) {
+                if (hasChildren) {
                   toggleItem(item.id);
                   handleMenuClick(item);
                 } else {
@@ -111,7 +117,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             >
               {item.title}
             </div>
-
 
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
@@ -125,7 +130,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </ul>
             )}
 
-            {isOpen && item.children && renderMenu(item.children, level + 1)}
+            {isOpen && hasChildren && renderMenu(item.children ?? [], level + 1)}
           </li>
         );
       })}
@@ -148,23 +153,28 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             </p>
           ) : (
             sections.map(section => (
-              <div key={section.id} className="menu-section">
+              <div key={section.id} className="menu-section"
+                onMouseEnter={() => handleSectionHover(section.id)}
+                onMouseLeave={handleSectionLeave}
+                style={{ position: 'relative' }}
+              >
                 <h3
                   className={`menu-section-title ${openSection === section.id ? "open" : ""}`}
+                  style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onClick={() => {
-                    setOpenSection(openSection === section.id ? null : section.id);
-
-                    const docsForMenu = documents.filter(doc => doc.menuId === section.id.toString());
-                    setFilteredDocs(docsForMenu);
-
                     setActiveMenu(section.title as MenuOption);
                   }}
                 >
-                  {section.title}
+                  <span>{section.title}</span>
+                  {section.items && section.items.length > 0 ? (
+                    <span style={{ fontSize: '1.1em', transition: 'transform 0.3s', transform: openSection === section.id ? 'rotate(90deg)' : 'rotate(0deg)' }}></span>
+                  ) : null}
                 </h3>
-
-
-                {openSection === section.id && renderMenu(section.items)}
+                {openSection === section.id && section.items && section.items.length > 0 && (
+                  <div className="submenu-dropdown" style={{ position: 'absolute', top: '100%', left: 0, minWidth: '180px', background: '#fff', borderRadius: '8px', boxShadow: '0 6px 15px rgba(0,0,0,0.15)', padding: '12px 0', zIndex: 999, transition: 'opacity 0.3s', opacity: openSection === section.id ? 1 : 0 }}>
+                    {renderMenu(section.items)}
+                  </div>
+                )}
               </div>
             ))
           )}

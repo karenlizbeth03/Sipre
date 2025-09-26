@@ -13,7 +13,7 @@
   transition: background 0.2s, color 0.2s, transform 0.15s;
 }
 .login-btn:hover {
-  background: #ef9b35;
+  background: #c96f00;
   transform: scale(1.05);
 }
 /* ===== Secciones principales ===== */
@@ -269,4 +269,50 @@
   background: linear-gradient(135deg, #e60000 60%, #ff7f50 100%);
   transform: scale(1.12) rotate(-10deg);
   box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
+
+/* Submenú tipo dropdown flotante */
+.submenu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  padding: 12px 0;
+  z-index: 999;
+  transition: opacity 0.3s, transform 0.3s;
+  opacity: 1;
+  transform: translateY(0);
+}
+.menu-section:not(:hover) .submenu-dropdown {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.submenu-dropdown ul {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.submenu-dropdown .menu-item {
+  background: #f3f4f6;
+  color: #222;
+  padding: 10px 18px;
+  border-radius: 8px;
+  margin-bottom: 0;
+  font-size: 1rem;
+  min-width: 90px;
+  text-align: center;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.submenu-dropdown .menu-item:hover {
+  background: #f78409;
+  color: #fff;
 }

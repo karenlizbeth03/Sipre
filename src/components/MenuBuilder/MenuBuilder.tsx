@@ -9,6 +9,7 @@ const MenuBuilder: React.FC = () => {
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [newSectionTitle, setNewSectionTitle] = useState('');
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   const handleAddMenuItem = (sectionId: string, parentId: string | null, itemData: Omit<MenuItem, 'id'>) => {
     const newItem: MenuItem = { ...itemData, id: Date.now().toString() };
@@ -27,8 +28,16 @@ const MenuBuilder: React.FC = () => {
     setNewSectionTitle('');
   };
 
+  const toggleSection = (sectionId: string) => {
+    setOpenSections(prev =>
+      prev.includes(sectionId)
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
   const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
-    <ul className="menu-list" style={{ marginLeft: `${level * 20}px` }}>
+    <ul className="menu-list" style={{ marginLeft: `${level * 20}px`, maxHeight: openSections.includes(sectionId) ? '1000px' : '0', overflow: 'hidden', transition: 'max-height 0.4s cubic-bezier(.4,0,.2,1)' }}>
       {items.map(item => (
         <li key={item.id}>
           <div className="menu-item">
@@ -81,12 +90,15 @@ const MenuBuilder: React.FC = () => {
 
       {sections.map(section => (
         <div key={section.id} className="section">
-          <h3>
-            {section.title}{' '}
-            <button onClick={() => removeSection(section.id)}>Eliminar Sección</button>
+          <h3 onClick={() => toggleSection(section.id)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>{section.title}</span>
+              <span className={`arrow ${openSections.includes(section.id) ? 'open' : ''}`}>▼</span>
+            </span>
+            <button onClick={(e) => { e.stopPropagation(); removeSection(section.id); }}>Eliminar Sección</button>
           </h3>
 
-          {renderMenuItems(section.items, section.id)}
+          {openSections.includes(section.id) && renderMenuItems(section.items, section.id)}
 
           {activeItem === section.id && (
             <MenuItemForm
@@ -97,7 +109,9 @@ const MenuBuilder: React.FC = () => {
             />
           )}
 
-          <button onClick={() => setActiveItem(section.id)}>+ Item</button>
+          {openSections.includes(section.id) && (
+            <button onClick={() => setActiveItem(section.id)}>+ Item</button>
+          )}
         </div>
       ))}
     </div>
