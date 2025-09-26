@@ -1,4 +1,66 @@
-/* ===== Contenedor principal ===== */
+/* Excel mejorado en modal */
+.excel-container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: #f8fafc;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 16px;
+  border: 1px solid #e3eaf2;
+  max-height: 70vh;
+  max-width: 100%;
+}
+
+/* Scrollbar personalizado */
+.excel-container::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  background: #e3eaf2;
+  border-radius: 8px;
+}
+.excel-container::-webkit-scrollbar-thumb {
+  background: #b6c2d2;
+  border-radius: 8px;
+}
+.excel-container::-webkit-scrollbar-thumb:hover {
+  background: #8ca0b8;
+}
+
+.excel-container table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 15px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border-radius: 8px;
+  overflow-x: auto;
+  table-layout: auto;
+}
+.excel-container th {
+  position: sticky;
+  top: 0;
+  background: #e3eaf2;
+  color: #222;
+  font-weight: 600;
+  border-bottom: 2px solid #b6c2d2;
+  z-index: 2;
+}
+.excel-container td {
+  border: 1px solid #dbe2ea;
+  padding: 8px 12px;
+  text-align: left;
+  background: #fff;
+}
+.excel-container tr:nth-child(even) td {
+  background: #f4f8fc;
+}
+.excel-container tr:hover td {
+  background: #eaf3fb;
+}
+
 .document-manager {
   display: flex;
   flex-direction: column;
@@ -12,7 +74,6 @@
   overflow-y: auto;
 }
 
-/* ===== Modal Overlay ===== */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -26,24 +87,22 @@
   z-index: 2000;
 }
 
-/* Contenedor del visor */
 .modal-content {
   background: #fff;
   border-radius: 10px;
   padding: 20px;
-  width: 80vw;       /* más ancho */
-  max-width: 1600px; /* opcional: límite máximo en pantallas grandes */
-  height: 90vh;      /* más alto */
-  max-height: 95vh;  /* opcional: evitar que desborde */
-  overflow: auto;
+  width: 80vw;
+  max-width: 1600px;
+  height: 90vh;
+  max-height: 95vh;
   position: relative;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.4);
   animation: fadeIn 0.3s ease-in-out;
-  margin: 0 auto;    /* centra horizontalmente */
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
-/* Botón cerrar modal */
+
 .close-btn {
   position: absolute;
   top: 10px;
@@ -69,9 +128,10 @@
   flex: 1;
   width: 100%;
   height: 100%;
+  overflow: auto;
 }
 
-/* Animación modal */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -249,7 +309,7 @@
   border-radius: 6px;
   cursor: pointer;
 }
-/* 🔍 Caja de búsqueda con botón */
+/*  Caja de búsqueda con botón */
 .search-box {
   display: flex;
   align-items: center;

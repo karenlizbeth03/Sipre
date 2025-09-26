@@ -1,3 +1,86 @@
+/* ================= Responsividad ================= */
+@media (max-width: 900px) {
+  .document-list-page {
+    padding: 8px;
+    border-radius: 6px;
+  }
+  .document-table {
+    font-size: 0.9rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+  }
+  .document-table th,
+  .document-table td {
+    padding: 8px 6px;
+    font-size: 0.9rem;
+  }
+  .document-table select {
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 600px) {
+  .document-list-page h2 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+  .search-bar {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .search-bar input {
+    font-size: 0.9rem;
+    padding: 6px 8px;
+  }
+  .search-bar button {
+    font-size: 0.9rem;
+    padding: 6px 8px;
+  }
+  .document-table {
+    font-size: 0.85rem;
+    border-radius: 4px;
+    min-width: 350px;
+    overflow-x: auto;
+    display: block;
+  }
+  .document-table th,
+  .document-table td {
+    padding: 6px 4px;
+    font-size: 0.85rem;
+  }
+  .document-table select {
+    font-size: 0.85rem;
+    padding: 4px 6px;
+    min-width: 90px;
+  }
+}
+/* Select de sección y submenús */
+.document-table select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  background: #f8fafc;
+}
+
+.document-table option {
+  color: #222;
+  background: #fff;
+}
+
+.document-table option[value] {
+  font-weight: 500;
+}
+
+.document-table option.submenu {
+  padding-left: 24px;
+  color: #666;
+  background: #f4f8fc;
+}
 /* DocumentListPage.css */
 .document-list-page {
   padding: 20px;

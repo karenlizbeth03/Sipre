@@ -67,8 +67,9 @@ const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
             <button
               className="close-btn"
               onClick={() => setPreviewDoc(null)}
+              title="Cerrar"
             >
-              Cerrar
+              ✖
             </button>
           </div>
         </div>

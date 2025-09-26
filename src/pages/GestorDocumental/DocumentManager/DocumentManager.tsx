@@ -161,12 +161,16 @@ const handleUpload = async (files: FileList, menuId: string) => {
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="close-btn"
-              onClick={() => setSelectedDocument(null)}
-            >
-              ✖
-            </button>
+            <div className="modal-header">
+              <h3>{selectedDocument.name}</h3>
+              <button
+                className="close-btn"
+                onClick={() => setSelectedDocument(null)}
+                title="Cerrar"
+              >
+                ✖
+              </button>
+            </div>
             <DocumentViewer document={selectedDocument} />
           </div>
         </div>

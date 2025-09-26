@@ -74,11 +74,21 @@ const DocumentListPage: React.FC<Props> = ({
                     value={doc.menuId || ""}
                     onChange={(e) => onSectionChange(doc.id, e.target.value)}
                   >
-                    <option value="">-  -</option>
+                    <option value="">Seleccionar</option>
                     {sections.map((sec) => (
-                      <option key={sec.id} value={sec.id}>
-                        {sec.title}
-                      </option>
+                      <optgroup key={sec.id} label={sec.title}>
+                        <option value={sec.id} style={{fontWeight: 'bold'}}>{sec.title}</option>
+                        {sec.items.map((item) => (
+                          <React.Fragment key={item.id}>
+                            <option value={item.id} style={{paddingLeft: '12px'}}>*{item.title}</option>
+                            {item.children && item.children.map((subitem) => (
+                              <option key={subitem.id} value={subitem.id} className="submenu" style={{paddingLeft: '28px', color: '#666', background: '#f4f8fc'}}>
+                                &nbsp;&nbsp;&nbsp;{item.title} / {subitem.title}
+                              </option>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </td>

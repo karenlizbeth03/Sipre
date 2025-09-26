@@ -232,9 +232,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         <h3>{previewDoc.name}</h3>
         <button onClick={() => setPreviewDoc(null)}>✖</button>
       </div>
-      <div className="modal-body">
-        <DocumentViewer document={previewDoc} />
-      </div>
+      <DocumentViewer document={previewDoc} />
     </div>
   </div>
 )}

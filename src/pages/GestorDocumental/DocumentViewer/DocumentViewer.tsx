@@ -12,9 +12,10 @@ export interface AppDocument {
 
 interface DocumentViewerProps {
   document: AppDocument;
+  onClose?: () => void;
 }
 
-const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) => {
   const previewRef = useRef<HTMLDivElement>(null);
   const [pdfUrl, setPdfUrl] = useState(document.urlPdf);
 
@@ -93,9 +94,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
 
   return (
     <div className="document-viewer">
-      <div className="viewer-header">
-        <h3>{document.name}</h3>
-      </div>
       <div className="viewer-content" ref={previewRef}></div>
     </div>
   );

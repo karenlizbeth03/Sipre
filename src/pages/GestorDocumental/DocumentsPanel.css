@@ -1,3 +1,26 @@
+.close-btn {
+  background: linear-gradient(135deg, #ff4d4d 60%, #ff7f50 100%);
+  border: none;
+  color: white;
+  font-size: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, transform 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  outline: none;
+  border: 2px solid #fff;
+  margin: 16px auto 0 auto;
+}
+.close-btn:hover {
+  background: linear-gradient(135deg, #e60000 60%, #ff7f50 100%);
+  transform: scale(1.12) rotate(-10deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
 .documents-panel {
   padding: 20px;
 }
