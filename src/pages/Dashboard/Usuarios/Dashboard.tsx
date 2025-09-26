@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import type { MenuOption, MenuItem, MenuSection, Document } from "../../../types";
 import "./Dashboard.css";
-import { Repeat } from "lucide-react";
 import Home from "../../../components/Home";
 import DocumentsPanel from "../../GestorDocumental/DocumentsPanel";
 import {
@@ -11,8 +10,9 @@ import {
   AiOutlineFile,
   AiOutlineEye,
   AiOutlineDownload,
-} from "react-icons/ai"
+} from "react-icons/ai";
 import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
+import Login from '../../../components/Login/Login';
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -35,6 +35,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     const storedSections = localStorage.getItem("menuSections");
@@ -82,6 +83,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     setActiveMenu((item.option || item.title) as MenuOption);
   };
 
+  const handleLoginSuccess = (token: string) => {
+    setShowLogin(false);
+    onLogout(); // Cambia el rol en el padre (App)
+  };
 
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
@@ -138,7 +143,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
-            <p style={{ padding: "10px", color: "red" }}>
+            <p style={{ padding: "10px" }}>
               ⚠️ No hay menús configurados.
             </p>
           ) : (
@@ -164,9 +169,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             ))
           )}
 
-          <button className="logout-btn" onClick={onLogout}>
-            <Repeat />
-            <center>Cambiar Rol</center>
+          <button className="login-btn" onClick={() => setShowLogin(true)}>
+            <center>Iniciar Sesión</center>
           </button>
         </nav>
       </header>
@@ -237,6 +241,12 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   </div>
 )}
 
+      {showLogin && (
+        <Login 
+          onLoginSuccess={handleLoginSuccess}
+          onCancel={() => setShowLogin(false)}
+        />
+      )}
     </div>
   );
 };

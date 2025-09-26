@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import type { MenuOption } from '../../../App'
 import './Dashboard.css'
-import { Repeat } from 'lucide-react';
 
 interface DashboardProps {
   activeMenu: MenuOption
@@ -78,8 +77,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
         <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
           {renderMenu(menuItems)}
-          <button className="logout-btn" onClick={onLogout}><Repeat />
-            <center>Cambiar Rol</center>
+          <button className="logout-btn" onClick={onLogout}>
+            <center>Cerrar Sesión</center>
           </button>
         </nav>
       </header>

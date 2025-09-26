@@ -68,13 +68,13 @@ button[type="submit"] {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 1rem;
-  transition: all 0.3s ease;
+  transition: color 0.2s, transform 0.15s;
+  z-index: 10;
 }
 
-button[type="submit"]:hover {
-  background-color: #e85d04;
-  transform: translateY(-2px);
+.login-close-btn:hover {
+  color: #ff7f1a;
+  transform: scale(1.2);
 }
 
 /* Credenciales demo */

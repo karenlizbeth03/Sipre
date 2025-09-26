@@ -14,7 +14,7 @@ export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
 function App() {
   const [activeMenu, setActiveMenu] = useState<MenuOption>('home');
   const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
-  const [filteredDocs, setFilteredDocs] = useState<Document[]>([]); // 🔹 Estado agregado
+  const [filteredDocs, setFilteredDocs] = useState<Document[]>([]); 
   const { sections } = useMenu();
 
   const toggleRole = () => {
@@ -22,7 +22,6 @@ function App() {
     setActiveMenu('home');
   };
 
-  // Contenido solo para admin
   const renderAdminContent = () => {
     switch (activeMenu) {
       case 'documents':

@@ -20,7 +20,7 @@ const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
 
   return (
     <div className="documents-panel">
-      <h2>📂 Documentos</h2>
+      <h2>Documentos</h2>
       <div className="doc-grid">
         {documents.map((doc) => (
           <div key={doc.id} className="doc-card">
@@ -54,7 +54,7 @@ const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
       {previewDoc && (
         <div className="preview-modal">
           <div className="preview-content">
-            <h3>👁️ {previewDoc.name}</h3>
+            <h3>{previewDoc.name}</h3>
             {previewDoc.type.includes("pdf") ? (
               <iframe
                 src={previewDoc.url}
@@ -62,7 +62,7 @@ const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
                 className="doc-preview"
               />
             ) : (
-              <p>⚠️ Este tipo de archivo no se puede previsualizar aquí.</p>
+              <p> Este tipo de archivo no se puede previsualizar aquí.</p>
             )}
             <button
               className="close-btn"
