@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import type { MenuOption, MenuItem, MenuSection, Document } from "../../../types";
 import "./Dashboard.css";
 import Home from "../../../components/Home";
+import galaImg from '../../../assets/gala.jpg';
 import DocumentsPanel from "../../GestorDocumental/DocumentsPanel";
 import {
   AiOutlineFilePdf,
@@ -41,10 +42,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     const storedSections = localStorage.getItem("menuSections");
     if (storedSections) {
       const parsedSections: MenuSection[] = JSON.parse(storedSections);
-      console.info("📂 Secciones cargadas desde localStorage:", parsedSections);
+      console.info("Secciones cargadas desde localStorage:", parsedSections);
       setSections(parsedSections);
     } else {
-      console.warn("⚠️ No se encontraron menús configurados. Contacta al administrador.");
+      console.warn("No se encontraron menús configurados. Contacta al administrador.");
     }
 
     const fetchDocuments = async () => {
@@ -149,7 +150,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
             <p style={{ padding: "10px" }}>
-              ⚠️ No hay menús configurados.
+              
             </p>
           ) : (
             sections.map(section => (
@@ -191,9 +192,18 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
   {activeMenu !== "home" && activeMenu !== "documents" && (
     <div>
-      <h2>
-        Estás en: <b>{activeMenu}</b>
-      </h2>
+      <h1 style={{
+        textAlign: 'center',
+        fontSize: '2.4rem',
+        fontWeight: 700,
+        color: '#000000ff',
+        margin: '32px 0 18px 0',
+        letterSpacing: '2px',
+        fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
+        textTransform: 'uppercase',
+      }}>
+        {String(activeMenu).toUpperCase()}
+      </h1>
 
       <ul className="doc-list">
         {filteredDocs.length > 0 ? (
@@ -232,7 +242,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             );
           })
         ) : (
-          <p>No hay documentos en esta sección.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '32px' }}>
+            <img src={galaImg} alt="Sin documentos" style={{ maxWidth: '320px', width: '100%', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.10)' }} />
+            <span style={{ marginTop: '18px', color: '#888', fontSize: '1.1rem' }}>No hay documentos en esta sección.</span>
+          </div>
         )}
       </ul>
     </div>
