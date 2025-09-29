@@ -201,6 +201,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         letterSpacing: '2px',
         fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
         textTransform: 'uppercase',
+        textShadow: '0 2px 12px rgba(0, 0, 0, 0.18), 0 3px 0 #e9853aff',
       }}>
         {String(activeMenu).toUpperCase()}
       </h1>

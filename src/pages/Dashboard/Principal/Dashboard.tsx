@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { MenuOption } from '../../../App'
+import Home from '../../../components/Home'
 import './Dashboard.css'
 
 interface DashboardProps {
@@ -83,7 +84,9 @@ const Dashboard: React.FC<DashboardProps> = ({
         </nav>
       </header>
 
-      <main className="dashboard-content">{children}</main>
+      <main className="dashboard-content">
+        <Home documents={[]} />
+      </main>
     </div>
   )
 }
