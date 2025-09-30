@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import { logout } from '../../../utils/auth'
 import type { MenuOption } from '../../../App'
-import Home from '../../../components/Home'
 import './Dashboard.css'
 
 interface DashboardProps {
@@ -68,6 +68,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     </ul>
   )
 
+  const handleLogoutClick = async () => {
+    await logout();
+    onLogout();
+  };
+
   return (
     <div className="dashboard-top-layout">
       <header className="dashboard-header">
@@ -78,15 +83,13 @@ const Dashboard: React.FC<DashboardProps> = ({
 
         <nav className={`dashboard-nav ${menuOpen ? 'open' : ''}`}>
           {renderMenu(menuItems)}
-          <button className="logout-btn" onClick={onLogout}>
+          <button className="logout-btn" onClick={handleLogoutClick}>
             <center>Cerrar Sesión</center>
           </button>
         </nav>
       </header>
 
-      <main className="dashboard-content">
-        <Home documents={[]} />
-      </main>
+      <main className="dashboard-content">{children}</main>
     </div>
   )
 }

@@ -47,7 +47,6 @@ function App() {
         </button>
       </div>
 
-      {/* Vista Admin */}
       {userRole === 'admin' && (
         <Dashboard
           activeMenu={activeMenu}
@@ -57,15 +56,13 @@ function App() {
           {renderAdminContent()}
         </Dashboard>
       )}
-
-      {/* Vista Usuario */}
       {userRole === 'user' && (
         <DashboardUser
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
           onLogout={toggleRole}
           filteredDocs={filteredDocs} 
-          setFilteredDocs={setFilteredDocs} // 🔹 Ahora definido
+          setFilteredDocs={setFilteredDocs} 
         />
       )}
     </div>

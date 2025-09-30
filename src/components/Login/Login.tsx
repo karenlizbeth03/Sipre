@@ -7,7 +7,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
-  const [username, setUsername] = useState('');
+  const [email, setemail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -15,15 +15,14 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://localhost:4000/login', {
+      const res = await fetch('http://192.168.2.165:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        credentials: 'include',
+        body: JSON.stringify({ email, password })
       });
-      const data = await res.json();
-      if (data.success && data.token) {
-        localStorage.setItem('adminToken', data.token);
-        onLoginSuccess(data.token);
+      if (res.ok) {
+        onLoginSuccess('success');
       } else {
         setError('Credenciales inválidas');
       }
@@ -43,16 +42,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
         >
           ×
         </button>
-        <h2>Iniciar Sesión (Solo Administrador)</h2>
+        <h2>Iniciar Sesión</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Usuario</label>
+            <label htmlFor="email">Usuario</label>
             <input
               type="text"
-              id="username"
+              id="email"
               placeholder="Ingrese su usuario"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setemail(e.target.value)}
               required
             />
           </div>
