@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import galaImg from '../../assets/gala.jpg';
 import type { Document } from "../../types";
 import {
   AiOutlineFileExcel,
@@ -15,7 +16,12 @@ const DocumentsPanel: React.FC<DocumentsPanelProps> = ({ documents }) => {
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   if (!documents || documents.length === 0) {
-    return <p>No hay documentos para esta sección.</p>;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '32px' }}>
+        <img src={galaImg} alt="Sin documentos" style={{ maxWidth: '320px', width: '100%', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.10)' }} />
+        <span style={{ marginTop: '18px', color: '#888', fontSize: '1.1rem' }}>No hay documentos para esta sección.</span>
+      </div>
+    );
   }
 
   return (

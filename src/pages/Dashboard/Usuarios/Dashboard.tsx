@@ -78,10 +78,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   };
 
   const handleMenuClick = (item: MenuItem) => {
-    const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
-    setFilteredDocs(docsForMenu);
-
-    setActiveMenu((item.option || item.title) as MenuOption);
+  // Filtra solo los documentos que pertenecen al menú seleccionado
+  const docsForMenu = documents.filter(doc => String(doc.menuId) === String(item.id));
+  setFilteredDocs(docsForMenu);
+  // Guarda el menú activo como el id para renderizar correctamente la página
+  setActiveMenu(item.id as MenuOption);
   };
 
   const handleLoginSuccess = (token: string) => {
@@ -99,7 +100,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
       {items.map(item => {
-        const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
+        const docsForMenu = documents.filter(doc => String(doc.menuId) === String(item.id));
         const isOpen = openItems[item.id] || false;
         const hasChildren = Array.isArray(item.children) && item.children.length > 0;
 
@@ -108,11 +109,9 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             <div
               className={`menu-item ${hasChildren ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""}`}
               onClick={() => {
+                handleMenuClick(item);
                 if (hasChildren) {
                   toggleItem(item.id);
-                  handleMenuClick(item);
-                } else {
-                  handleMenuClick(item);
                 }
               }}
             >
@@ -201,9 +200,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         letterSpacing: '2px',
         fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
         textTransform: 'uppercase',
-        textShadow: '0 2px 12px rgba(0, 0, 0, 0.18), 0 3px 0 #e9853aff',
+        textShadow: '0 2px 12px rgba(0,0,0,0.18), 0 1px 0 #fff',
       }}>
-        {String(activeMenu).toUpperCase()}
+        {sections
+          .flatMap(section => section.items)
+          .find(item => item.id === activeMenu)?.title?.toUpperCase() || String(activeMenu).toUpperCase()}
       </h1>
 
       <ul className="doc-list">

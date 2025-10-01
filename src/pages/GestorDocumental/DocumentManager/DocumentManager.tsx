@@ -43,7 +43,7 @@ const handleUpload = async (files: FileList, menuId: string) => {
   for (const file of fileArray) {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("menuId", menuId); 
+    formData.append("menuId", String(menuId)); 
 
     const res = await fetch(`${API_URL}/upload`, {
       method: "POST",
@@ -51,7 +51,8 @@ const handleUpload = async (files: FileList, menuId: string) => {
     });
 
     const newDoc = await res.json();
-    setDocuments((prev) => [...prev, newDoc]);
+    // Ensure menuId is string in frontend state
+    setDocuments((prev) => [...prev, { ...newDoc, menuId: String(newDoc.menuId) }]);
   }
 };
 
