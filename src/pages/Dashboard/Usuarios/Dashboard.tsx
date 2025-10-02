@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import type { MenuOption, MenuItem, MenuSection, Document } from "../../../types";
 import "./Dashboard.css";
 import Home from "../../../components/Home";
-import galaImg from '../../../assets/gala.jpg';
 import DocumentsPanel from "../../GestorDocumental/DocumentsPanel";
 import {
   AiOutlineFilePdf,
@@ -22,7 +21,6 @@ interface DashboardUserProps {
   setFilteredDocs: React.Dispatch<React.SetStateAction<Document[]>>;
   filteredDocs: Document[];
 }
-
 const DashboardUser: React.FC<DashboardUserProps> = ({
   activeMenu,
   setActiveMenu,
@@ -36,88 +34,76 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [documents, setDocuments] = useState<Document[]>([]);
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
-  const [showLogin, setShowLogin] = useState(false);
+   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     const storedSections = localStorage.getItem("menuSections");
     if (storedSections) {
       const parsedSections: MenuSection[] = JSON.parse(storedSections);
-      console.info("Secciones cargadas desde localStorage:", parsedSections);
+      console.info("📂 Secciones cargadas desde localStorage:", parsedSections);
       setSections(parsedSections);
     } else {
-      console.warn("No se encontraron menús configurados. Contacta al administrador.");
+      console.warn("⚠️ No se encontraron menús configurados. Contacta al administrador.");
     }
+
+     const handleLoginSuccess = (token: string) => {
+    setShowLogin(false);
+    onLogout(); 
+  };
 
     const fetchDocuments = async () => {
       try {
         console.info("⏳ Cargando documentos desde el backend...");
         const res = await fetch("http://localhost:4000/documents");
         if (!res.ok) throw new Error("❌ Error en la respuesta del servidor");
-
         const data: Document[] = await res.json();
         const normalizedDocs = data.map(doc => ({ ...doc, menuId: doc.menuId?.toString() }));
-
         setDocuments(normalizedDocs);
         setFilteredDocs(normalizedDocs);
         localStorage.setItem("documents", JSON.stringify(normalizedDocs));
-
         console.info(`📄 Documentos cargados (${normalizedDocs.length})`);
       } catch (err) {
         console.error("❌ No se pudieron cargar los documentos:", err);
       }
     };
-
     fetchDocuments();
   }, [setFilteredDocs]);
-
   const toggleItem = (itemId: string) => {
     setOpenItems(prev => ({
       ...prev,
       [itemId]: !prev[itemId],
     }));
   };
-
   const handleMenuClick = (item: MenuItem) => {
-  // Filtra solo los documentos que pertenecen al menú seleccionado
-  const docsForMenu = documents.filter(doc => String(doc.menuId) === String(item.id));
-  setFilteredDocs(docsForMenu);
-  // Guarda el menú activo como el id para renderizar correctamente la página
-  setActiveMenu(item.id as MenuOption);
+    const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
+    setFilteredDocs(docsForMenu);
+    setActiveMenu((item.option || item.title) as MenuOption);
   };
-
   const handleLoginSuccess = (token: string) => {
     setShowLogin(false);
-    onLogout(); // Cambia el rol en el padre (App)
+    onLogout(); 
   };
-
-  const handleSectionHover = (sectionId: string) => {
-    setOpenSection(sectionId);
-  };
-  const handleSectionLeave = () => {
-    setOpenSection(null);
-  };
-
   const renderMenu = (items: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
       {items.map(item => {
-        const docsForMenu = documents.filter(doc => String(doc.menuId) === String(item.id));
+        const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
         const isOpen = openItems[item.id] || false;
-        const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${hasChildren ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""}`}
+              className={`menu-item ${item.children ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""
+                }`}
               onClick={() => {
-                handleMenuClick(item);
-                if (hasChildren) {
+                if (item.children) {
                   toggleItem(item.id);
+                  handleMenuClick(item);
+                } else {
+                  handleMenuClick(item);
                 }
               }}
             >
               {item.title}
             </div>
-
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
                 {docsForMenu.map(doc => (
@@ -129,39 +115,33 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 ))}
               </ul>
             )}
-
-            {isOpen && hasChildren && renderMenu(item.children ?? [], level + 1)}
+            {isOpen && item.children && renderMenu(item.children, level + 1)}
           </li>
         );
       })}
     </ul>
   );
-
   return (
     <div className="dashboard-top-layout">
       <header className="dashboard-header">
         <div className="logo">Usuarios</div>
-
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>
-
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
             <p style={{ padding: "10px" }}>
-              
+             
             </p>
           ) : (
             sections.map(section => (
-              <div key={section.id} className="menu-section"
-                onMouseEnter={() => handleSectionHover(section.id)}
-                onMouseLeave={handleSectionLeave}
-                style={{ position: 'relative' }}
-              >
+              <div key={section.id} className="menu-section">
                 <h3
                   className={`menu-section-title ${openSection === section.id ? "open" : ""}`}
-                  style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onClick={() => {
+                    setOpenSection(openSection === section.id ? null : section.id);
+                    const docsForMenu = documents.filter(doc => doc.menuId === section.id.toString());
+                    setFilteredDocs(docsForMenu);
                     setActiveMenu(section.title as MenuOption);
                   }}
                 >
@@ -170,7 +150,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                     <span style={{ fontSize: '1.1em', transition: 'transform 0.3s', transform: openSection === section.id ? 'rotate(90deg)' : 'rotate(0deg)' }}></span>
                   ) : null}
                 </h3>
-                {openSection === section.id && section.items && section.items.length > 0 && (
+               {openSection === section.id && section.items && section.items.length > 0 && (
                   <div className="submenu-dropdown" style={{ position: 'absolute', top: '100%', left: 0, minWidth: '180px', background: '#fff', borderRadius: '8px', boxShadow: '0 6px 15px rgba(0,0,0,0.15)', padding: '12px 0', zIndex: 999, transition: 'opacity 0.3s', opacity: openSection === section.id ? 1 : 0 }}>
                     {renderMenu(section.items)}
                   </div>
@@ -178,17 +158,14 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </div>
             ))
           )}
-
           <button className="login-btn" onClick={() => setShowLogin(true)}>
             <center>Iniciar Sesión</center>
           </button>
         </nav>
       </header>
-
       <main className="dashboard-content">
   {activeMenu === "home" && <Home documents={documents} />}
   {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
-
   {activeMenu !== "home" && activeMenu !== "documents" && (
     <div>
       <h1 style={{
@@ -200,13 +177,25 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         letterSpacing: '2px',
         fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
         textTransform: 'uppercase',
-        textShadow: '0 2px 12px rgba(0,0,0,0.18), 0 1px 0 #fff',
+        textShadow: '0 2px 12px rgba(0, 0, 0, 0.18), 0 3px 0 #e9853aff',
       }}>
-        {sections
-          .flatMap(section => section.items)
-          .find(item => item.id === activeMenu)?.title?.toUpperCase() || String(activeMenu).toUpperCase()}
+        {
+          (() => {
+            for (const section of sections) {
+              if (section.id === activeMenu) return section.title.toUpperCase();
+              for (const item of section.items) {
+                if (item.id === activeMenu) return item.title.toUpperCase();
+                if (item.children) {
+                  for (const child of item.children) {
+                    if (child.id === activeMenu) return child.title.toUpperCase();
+                  }
+                }
+              }
+            }
+            return String(activeMenu).toUpperCase();
+          })()
+        }
       </h1>
-
       <ul className="doc-list">
         {filteredDocs.length > 0 ? (
           filteredDocs.map((doc) => {
@@ -216,7 +205,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               FileIcon = AiOutlineFileWord;
             if (doc.type.includes("excel") || doc.type.includes("xls"))
               FileIcon = AiOutlineFileExcel;
-
             return (
               <li key={doc.id} className="doc-item">
                 <div className="doc-icon">
@@ -244,16 +232,12 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             );
           })
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '32px' }}>
-            <img src={galaImg} alt="Sin documentos" style={{ maxWidth: '320px', width: '100%', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.10)' }} />
-            <span style={{ marginTop: '18px', color: '#888', fontSize: '1.1rem' }}>No hay documentos en esta sección.</span>
-          </div>
+          <p>No hay documentos en esta sección.</p>
         )}
       </ul>
     </div>
   )}
 </main>
-
 {previewDoc && (
   <div className="modal-overlay">
     <div className="modal-content">
@@ -261,12 +245,12 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         <h3>{previewDoc.name}</h3>
         <button onClick={() => setPreviewDoc(null)}>✖</button>
       </div>
+      
       <DocumentViewer document={previewDoc} />
     </div>
   </div>
 )}
-
-      {showLogin && (
+   {showLogin && (
         <Login 
           onLoginSuccess={handleLoginSuccess}
           onCancel={() => setShowLogin(false)}
@@ -275,5 +259,4 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     </div>
   );
 };
-
 export default DashboardUser;
