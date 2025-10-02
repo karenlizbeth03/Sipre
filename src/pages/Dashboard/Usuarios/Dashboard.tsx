@@ -37,20 +37,21 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
    const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
-    const storedSections = localStorage.getItem("menuSections");
-    if (storedSections) {
-      const parsedSections: MenuSection[] = JSON.parse(storedSections);
-      console.info("📂 Secciones cargadas desde localStorage:", parsedSections);
-      setSections(parsedSections);
-    } else {
-      console.warn("⚠️ No se encontraron menús configurados. Contacta al administrador.");
-    }
+    // Cargar menú desde backend
+    const fetchMenu = async () => {
+      try {
+        const res = await fetch("http://192.168.2.165:3000/menus");
+        if (!res.ok) throw new Error("Error al cargar menú");
+        const menuData: MenuSection[] = await res.json();
+        setSections(menuData);
+        console.info("📂 Menú cargado desde backend:", menuData);
+      } catch (err) {
+        console.error("❌ No se pudo cargar el menú:", err);
+      }
+    };
+    fetchMenu();
 
-     const handleLoginSuccess = (token: string) => {
-    setShowLogin(false);
-    onLogout(); 
-  };
-
+    // Documentos
     const fetchDocuments = async () => {
       try {
         console.info("⏳ Cargando documentos desde el backend...");
