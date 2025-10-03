@@ -11,3 +11,4 @@ export async function logout(): Promise<void> {
     // Puedes mostrar un mensaje si lo deseas
   }
 }
+

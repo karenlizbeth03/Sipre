@@ -16,10 +16,11 @@ export interface Document {
   menuId?: string;
 }
 
-const API_URL = "http://localhost:4000";
+const API_DOCS = "http://localhost:4000";
+const API_MENUS = "http://192.168.2.165:3000/menus";
 
 const DocumentManager: React.FC = () => {
-  const { sections } = useMenu();
+  const { sections, setSections } = useMenu();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [modalDoc, setModalDoc] = useState<Document | null>(null);
@@ -30,33 +31,85 @@ const DocumentManager: React.FC = () => {
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
+  // ===================== 📌 MENÚS (GET/POST/PUT/DELETE) =====================
   useEffect(() => {
-    fetch(`${API_URL}/documents`)
+    const fetchMenus = async () => {
+      try {
+        const res = await fetch(API_MENUS);
+        const data = await res.json();
+        setSections(data.data || []);
+      } catch (err) {
+        console.error("❌ Error cargando menús:", err);
+      }
+    };
+    fetchMenus();
+  }, [setSections]);
+
+  const createMenu = async (name: string, parentId: string | null = null) => {
+    try {
+      const res = await fetch(API_MENUS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, parent_menu_id: parentId }),
+      });
+      const result = await res.json();
+      setSections((prev: any) => [...prev, result.data]);
+    } catch (err) {
+      console.error("❌ Error creando menú:", err);
+    }
+  };
+
+  const updateMenu = async (id: string, name: string) => {
+    try {
+      await fetch(`${API_MENUS}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      setSections((prev: any) =>
+        prev.map((menu: any) =>
+          menu.id === id ? { ...menu, name } : menu
+        )
+      );
+    } catch (err) {
+      console.error("❌ Error actualizando menú:", err);
+    }
+  };
+
+  const deleteMenu = async (id: string) => {
+    try {
+      await fetch(`${API_MENUS}/${id}`, { method: "DELETE" });
+      setSections((prev: any) => prev.filter((menu: any) => menu.id !== id));
+    } catch (err) {
+      console.error("❌ Error eliminando menú:", err);
+    }
+  };
+
+  // ===================== 📌 DOCUMENTOS (GET/POST/PUT/DELETE) =====================
+  useEffect(() => {
+    fetch(`${API_DOCS}/documents`)
       .then((res) => res.json())
       .then((data) => setDocuments(data))
       .catch((err) => console.error("Error cargando docs:", err));
   }, []);
 
-const handleUpload = async (files: FileList, menuId: string) => {
-  const fileArray = Array.from(files);
+  const handleUpload = async (files: FileList, menuId: string) => {
+    const fileArray = Array.from(files);
 
-  for (const file of fileArray) {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("menuId", String(menuId)); 
+    for (const file of fileArray) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("menuId", String(menuId));
 
-    const res = await fetch(`${API_URL}/upload`, {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch(`${API_DOCS}/upload`, {
+        method: "POST",
+        body: formData,
+      });
 
-    const newDoc = await res.json();
-    // Ensure menuId is string in frontend state
-    setDocuments((prev) => [...prev, { ...newDoc, menuId: String(newDoc.menuId) }]);
-  }
-};
-
-
+      const newDoc = await res.json();
+      setDocuments((prev) => [...prev, { ...newDoc, menuId: String(newDoc.menuId) }]);
+    }
+  };
 
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
@@ -68,7 +121,7 @@ const handleUpload = async (files: FileList, menuId: string) => {
   const confirmDelete = async () => {
     if (!modalDoc) return;
 
-    await fetch(`${API_URL}/documents/${modalDoc.id}`, {
+    await fetch(`${API_DOCS}/documents/${modalDoc.id}`, {
       method: "DELETE",
     });
 
@@ -99,7 +152,7 @@ const handleUpload = async (files: FileList, menuId: string) => {
       formData.append("file", tempFile);
     }
 
-    const res = await fetch(`${API_URL}/documents/${modalDoc.id}`, {
+    const res = await fetch(`${API_DOCS}/documents/${modalDoc.id}`, {
       method: "PUT",
       body: formData,
     });
@@ -117,23 +170,21 @@ const handleUpload = async (files: FileList, menuId: string) => {
   const handleView = (doc: Document) => {
     setSelectedDocument(doc);
   };
+
   const handleSectionChange = (docId: string, sectionId: string) => {
-  const updatedDocs = documents.map((doc) =>
-    doc.id === docId ? { ...doc, menuId: sectionId } : doc
-  );
-   setDocuments(updatedDocs);
+    const updatedDocs = documents.map((doc) =>
+      doc.id === docId ? { ...doc, menuId: sectionId } : doc
+    );
+    setDocuments(updatedDocs);
 
-  localStorage.setItem("documents", JSON.stringify(updatedDocs));
+    fetch(`${API_DOCS}/documents/${docId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ menuId: sectionId }),
+    }).catch((err) => console.error("❌ Error guardando en backend:", err));
+  };
 
-  fetch(`http://localhost:4000/documents/${docId}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ menuId: sectionId }),
-  }).catch((err) => console.error("❌ Error guardando en backend:", err));
-
-};
-
-
+  // ===================== 📌 RENDER =====================
   return (
     <div className="document-manager">
       <div className="document-header">
@@ -158,7 +209,7 @@ const handleUpload = async (files: FileList, menuId: string) => {
 
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
 
-
+      {/* Modal de documentos */}
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -177,6 +228,7 @@ const handleUpload = async (files: FileList, menuId: string) => {
         </div>
       )}
 
+      {/* Modal Editar / Eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -215,8 +267,9 @@ const handleUpload = async (files: FileList, menuId: string) => {
                   <option value="">-- Seleccionar sección --</option>
                   {sections.map((sec) => (
                     <option key={sec.id} value={sec.id}>
-                      {sec.title}
+                      {sec.name}
                     </option>
+
                   ))}
                 </select>
 

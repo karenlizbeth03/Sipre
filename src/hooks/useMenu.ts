@@ -11,8 +11,8 @@ export const useMenu = () => {
     localStorage.setItem("menuSections", JSON.stringify(sections));
   }, [sections]);
 
-  const addSection = (title: string) => {
-    setSections([...sections, { id: Date.now().toString(), title, items: [] }]);
+  const addSection = (name: string) => {
+    setSections([...sections, { id: Date.now().toString(), name, items: [] }]);
   };
 
   const addMenuItem = (sectionId: string, item: MenuItem, parentId?: string) => {
@@ -20,11 +20,11 @@ export const useMenu = () => {
       prev.map(section =>
         section.id === sectionId
           ? {
-              ...section,
-              items: parentId
-                ? addChild(section.items, parentId, item)
-                : [...section.items, item],
-            }
+            ...section,
+            items: parentId
+              ? addChild(section.items, parentId, item)
+              : [...section.items, item],
+          }
           : section
       )
     );
@@ -35,9 +35,9 @@ export const useMenu = () => {
       prev.map(section =>
         section.id === sectionId
           ? {
-              ...section,
-              items: updateChild(section.items, itemId, newData),
-            }
+            ...section,
+            items: updateChild(section.items, itemId, newData),
+          }
           : section
       )
     );
@@ -57,7 +57,7 @@ export const useMenu = () => {
     setSections(sections.filter(section => section.id !== sectionId));
   };
 
-  return { sections, addSection, addMenuItem, updateMenuItem, removeMenuItem, removeSection };
+  return { sections, addSection, addMenuItem, updateMenuItem, removeMenuItem, removeSection, setSections };
 };
 
 // helpers recursivos

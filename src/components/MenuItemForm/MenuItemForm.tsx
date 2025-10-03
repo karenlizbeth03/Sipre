@@ -16,12 +16,11 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [option, setOption] = useState(initialData?.option || '');
+  const [name, setName] = useState(initialData?.name || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const data = { title, option };
+    const data = { name }; // 👈 ahora solo mandamos "name"
     if (mode === 'add' && onAddItem) {
       onAddItem(data);
     } else if (mode === 'edit' && onSubmit) {
@@ -30,25 +29,19 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({
   };
 
   useEffect(() => {
-    setTitle(initialData?.title || '');
-    setOption(initialData?.option || '');
+    setName(initialData?.name || '');
   }, [initialData]);
 
   return (
     <form className="menu-item-form" onSubmit={handleSubmit}>
       <input
         type="text"
-        placeholder="Título"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Nombre del menú"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         required
       />
-      <input
-        type="text"
-        placeholder="Opción (opcional)"
-        value={option}
-        onChange={(e) => setOption(e.target.value)}
-      />
+      
       <div className="form-buttons">
         <button type="submit">{mode === 'add' ? 'Agregar' : 'Actualizar'}</button>
         <button type="button" onClick={onCancel}>Cancelar</button>

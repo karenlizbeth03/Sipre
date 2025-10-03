@@ -24,7 +24,7 @@ const DocumentList: React.FC<Props> = ({ documents, onView, onDelete, onDownload
         {documents.map((doc) => (
           <tr key={doc.id}>
             <td>{doc.name}</td>
-            <td>{doc.menuId}</td> {/* 👈 Mostramos la sección */}
+            <td>{doc.menuId}</td> 
             <td>{(doc.size / 1024).toFixed(2)} KB</td>
             <td>{new Date(doc.uploadDate).toLocaleDateString()}</td>
             <td>
