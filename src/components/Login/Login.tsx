@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import './Login.css';
 
 interface LoginProps {
@@ -7,15 +8,16 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
-  const [email, setemail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('http://192.168.2.165:3000/auth/login', {
+      const res = await fetch('http://192.168.2.169:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -38,7 +40,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
           className="login-close-btn"
           onClick={onCancel}
           title="Cerrar"
-          style={{ position: 'absolute', top: 18, right: 18, background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer', color: '#888' }}
+          style={{
+            position: 'absolute',
+            top: 18,
+            right: 18,
+            background: 'transparent',
+            border: 'none',
+            fontSize: 24,
+            cursor: 'pointer',
+            color: '#888'
+          }}
         >
           ×
         </button>
@@ -51,21 +62,38 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
               id="email"
               placeholder="Ingrese su usuario"
               value={email}
-              onChange={(e) => setemail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <div className="form-group">
+
+          <div className="form-group" style={{ position: 'relative' }}>
             <label htmlFor="password">Contraseña</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               id="password"
               placeholder="Ingrese su contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              style={{ paddingRight: '35px' }}
             />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-0%)',
+                cursor: 'pointer',
+                color: '#666',
+                fontSize: '20px'
+              }}
+            >
+              {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+            </span>
           </div>
+
           <button type="submit">Ingresar</button>
         </form>
         {error && <div className="login-error">{error}</div>}

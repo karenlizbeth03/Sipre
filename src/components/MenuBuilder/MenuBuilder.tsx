@@ -4,41 +4,20 @@ import { MenuItemForm } from "../MenuItemForm/MenuItemForm";
 import { useMenu } from "../../hooks/useMenu";
 import "./MenuBuilder.css";
 
-const API_URL = "http://192.168.2.165:3000/menus";
+const API_URL = "http://192.168.2.169:3000/menus";
 
-// 🔧 Helper para construir árbol a partir de parent_menu_id
-const buildMenuTree = (flatMenus: any[]): MenuSection[] => {
-  const map = new Map<string, any>();
-  const roots: MenuSection[] = [];
-
-  // Normalizar
-  flatMenus.forEach((item) => {
-    map.set(item.id, {
-      id: item.id,
-      name: item.name,
-      parentId: item.parent_menu_id,
-      items: [],
-    });
-  });
-
-  // Armar árbol
-  map.forEach((item) => {
-    if (item.parentId && map.has(item.parentId)) {
-      map.get(item.parentId).items.push(item);
-    } else {
-      roots.push(item);
-    }
-  });
-
-  return roots;
+// ✅ Normalizador recursivo correcto (usa "children")
+const normalizeMenuTree = (menus: any[]): MenuSection[] => {
+  return menus.map((menu) => ({
+    id: menu.id,
+    name: menu.name,
+    children: normalizeMenuTree(menu.submenus || []),
+  }));
 };
 
 const MenuBuilder: React.FC = () => {
-  // 👇 Usamos state local para controlar los menús
   const [sections, setSections] = useState<MenuSection[]>([]);
-
   const { addMenuItem, updateMenuItem, removeMenuItem, removeSection } = useMenu();
-
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [newSectionname, setNewSectionname] = useState("");
@@ -52,9 +31,10 @@ const MenuBuilder: React.FC = () => {
         if (!res.ok) throw new Error("Error al cargar menús");
 
         const result = await res.json();
-        const tree = buildMenuTree(result.data || []);
-        setSections(tree);
-        console.info("✅ Menús cargados en MenuBuilder:", tree);
+        const normalized = normalizeMenuTree(result.data || []);
+        setSections(normalized);
+
+        console.info("✅ Menús cargados desde backend:", normalized);
       } catch (err) {
         console.error("❌ Error cargando menús:", err);
       }
@@ -80,8 +60,7 @@ const MenuBuilder: React.FC = () => {
       const newMenu = {
         id: result.data.id,
         name: result.data.name,
-        parentId: null,
-        items: [],
+        children: [],
       };
 
       setSections((prev) => [...prev, newMenu]);
@@ -113,7 +92,6 @@ const MenuBuilder: React.FC = () => {
       const newItem: MenuItem = {
         id: result.data.id,
         name: result.data.name,
-        option: itemData.option,
         children: [],
       };
 
@@ -178,6 +156,7 @@ const MenuBuilder: React.FC = () => {
     );
   };
 
+  // 🔁 Renderizado recursivo
   const renderMenuItems = (
     items: MenuItem[],
     sectionId: string,
@@ -205,7 +184,9 @@ const MenuBuilder: React.FC = () => {
             </div>
           </div>
 
+          {/* 👇 Render recursivo */}
           {item.children &&
+            item.children.length > 0 &&
             renderMenuItems(item.children, sectionId, level + 1)}
 
           {activeItem === item.id && (
@@ -223,7 +204,7 @@ const MenuBuilder: React.FC = () => {
             <MenuItemForm
               key={`edit-${item.id}`}
               mode="edit"
-              initialData={{ name: item.name, option: item.option }}
+              initialData={{ name: item.name }}
               onSubmit={(data) =>
                 handleUpdateMenuItem(sectionId, item.id, data)
               }
@@ -276,7 +257,7 @@ const MenuBuilder: React.FC = () => {
           </h3>
 
           {openSections.includes(section.id) &&
-            renderMenuItems(section.items, section.id)}
+            renderMenuItems(section.children, section.id)}
 
           {activeItem === section.id && (
             <MenuItemForm

@@ -12,7 +12,7 @@ export const useMenu = () => {
   }, [sections]);
 
   const addSection = (name: string) => {
-    setSections([...sections, { id: Date.now().toString(), name, items: [] }]);
+    setSections([...sections, { id: Date.now().toString(), name, children: [] }]);
   };
 
   const addMenuItem = (sectionId: string, item: MenuItem, parentId?: string) => {
@@ -21,9 +21,9 @@ export const useMenu = () => {
         section.id === sectionId
           ? {
             ...section,
-            items: parentId
-              ? addChild(section.items, parentId, item)
-              : [...section.items, item],
+            children: parentId
+              ? addChild(section.children, parentId, item)
+              : [...section.children, item],
           }
           : section
       )
@@ -36,7 +36,7 @@ export const useMenu = () => {
         section.id === sectionId
           ? {
             ...section,
-            items: updateChild(section.items, itemId, newData),
+            children: updateChild(section.children, itemId, newData),
           }
           : section
       )
@@ -47,7 +47,7 @@ export const useMenu = () => {
     setSections(prev =>
       prev.map(section =>
         section.id === sectionId
-          ? { ...section, items: deleteChild(section.items, itemId) }
+          ? { ...section, children: deleteChild(section.children, itemId) }
           : section
       )
     );
@@ -61,24 +61,24 @@ export const useMenu = () => {
 };
 
 // helpers recursivos
-const addChild = (items: MenuItem[], parentId: string, newItem: MenuItem): MenuItem[] => {
-  return items.map(item =>
+const addChild = (children: MenuItem[], parentId: string, newItem: MenuItem): MenuItem[] => {
+  return children.map(item =>
     item.id === parentId
       ? { ...item, children: [...(item.children || []), newItem] }
       : { ...item, children: item.children ? addChild(item.children, parentId, newItem) : [] }
   );
 };
 
-const updateChild = (items: MenuItem[], itemId: string, newData: Omit<MenuItem, "id">): MenuItem[] => {
-  return items.map(item =>
+const updateChild = (children: MenuItem[], itemId: string, newData: Omit<MenuItem, "id">): MenuItem[] => {
+  return children.map(item =>
     item.id === itemId
       ? { ...item, ...newData }
       : { ...item, children: item.children ? updateChild(item.children, itemId, newData) : [] }
   );
 };
 
-const deleteChild = (items: MenuItem[], itemId: string): MenuItem[] => {
-  return items
+const deleteChild = (children: MenuItem[], itemId: string): MenuItem[] => {
+  return children
     .filter(item => item.id !== itemId)
     .map(item => ({ ...item, children: item.children ? deleteChild(item.children, itemId) : [] }));
 };

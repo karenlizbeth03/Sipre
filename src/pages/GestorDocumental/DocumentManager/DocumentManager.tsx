@@ -1,4 +1,3 @@
-// DocumentManager.tsx
 import React, { useState, useEffect, useRef } from "react";
 import DocumentUpload from "../DocumentUpload/DocumentUpload";
 import DocumentListPage from "../DocumentListPage";
@@ -16,8 +15,7 @@ export interface Document {
   menuId?: string;
 }
 
-const API_DOCS = "http://localhost:4000";
-const API_MENUS = "http://192.168.2.165:3000/menus";
+const API_BASE = "http://192.168.2.169:3000";
 
 const DocumentManager: React.FC = () => {
   const { sections, setSections } = useMenu();
@@ -31,11 +29,23 @@ const DocumentManager: React.FC = () => {
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
-  // ===================== 📌 MENÚS (GET/POST/PUT/DELETE) =====================
+  // Helper para encabezados
+  const authHeaders = (contentType = "application/json") => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": contentType,
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  // ===================== 📁 MENÚS =====================
   useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const res = await fetch(API_MENUS);
+        const res = await fetch(`${API_BASE}/menus`, {
+          headers: authHeaders(),
+        });
+        if (res.status === 401) throw new Error("No autorizado");
         const data = await res.json();
         setSections(data.data || []);
       } catch (err) {
@@ -47,9 +57,9 @@ const DocumentManager: React.FC = () => {
 
   const createMenu = async (name: string, parentId: string | null = null) => {
     try {
-      const res = await fetch(API_MENUS, {
+      const res = await fetch(`${API_BASE}/menus`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ name, parent_menu_id: parentId }),
       });
       const result = await res.json();
@@ -61,15 +71,13 @@ const DocumentManager: React.FC = () => {
 
   const updateMenu = async (id: string, name: string) => {
     try {
-      await fetch(`${API_MENUS}/${id}`, {
+      await fetch(`${API_BASE}/menus/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ name }),
       });
       setSections((prev: any) =>
-        prev.map((menu: any) =>
-          menu.id === id ? { ...menu, name } : menu
-        )
+        prev.map((menu: any) => (menu.id === id ? { ...menu, name } : menu))
       );
     } catch (err) {
       console.error("❌ Error actualizando menú:", err);
@@ -78,36 +86,70 @@ const DocumentManager: React.FC = () => {
 
   const deleteMenu = async (id: string) => {
     try {
-      await fetch(`${API_MENUS}/${id}`, { method: "DELETE" });
+      await fetch(`${API_BASE}/menus/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
       setSections((prev: any) => prev.filter((menu: any) => menu.id !== id));
     } catch (err) {
       console.error("❌ Error eliminando menú:", err);
     }
   };
 
-  // ===================== 📌 DOCUMENTOS (GET/POST/PUT/DELETE) =====================
+  // ===================== 📄 DOCUMENTOS =====================
   useEffect(() => {
-    fetch(`${API_DOCS}/documents`)
-      .then((res) => res.json())
-      .then((data) => setDocuments(data))
-      .catch((err) => console.error("Error cargando docs:", err));
+    const fetchDocuments = async () => {
+  console.log(" Cargando documentos desde el backend...");
+
+  const token = localStorage.getItem("token");
+  console.log(" Token recuperado:", token); 
+
+  try {
+    const response = await fetch("http://192.168.2.169:3000/documents", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, 
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(" Documentos cargados:", data.data);
+    setDocuments(data.data);
+  } catch (error) {
+    console.error(" Error cargando documentos:", error);
+  }
+};
+    fetchDocuments();
   }, []);
 
   const handleUpload = async (files: FileList, menuId: string) => {
     const fileArray = Array.from(files);
+    const token = localStorage.getItem("token");
 
     for (const file of fileArray) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("menuId", String(menuId));
+      formData.append("menuId", menuId);
 
-      const res = await fetch(`${API_DOCS}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        const res = await fetch(`${API_BASE}/documents/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
 
-      const newDoc = await res.json();
-      setDocuments((prev) => [...prev, { ...newDoc, menuId: String(newDoc.menuId) }]);
+        const newDoc = await res.json();
+        setDocuments((prev) => [...prev, newDoc.data || newDoc]);
+      } catch (err) {
+        console.error("❌ Error subiendo documento:", err);
+      }
     }
   };
 
@@ -121,11 +163,16 @@ const DocumentManager: React.FC = () => {
   const confirmDelete = async () => {
     if (!modalDoc) return;
 
-    await fetch(`${API_DOCS}/documents/${modalDoc.id}`, {
-      method: "DELETE",
-    });
+    try {
+      await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
+    } catch (err) {
+      console.error("❌ Error eliminando documento:", err);
+    }
 
-    setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
     setModalType(null);
     setModalDoc(null);
   };
@@ -145,6 +192,7 @@ const DocumentManager: React.FC = () => {
   const saveModalChanges = async () => {
     if (!modalDoc) return;
 
+    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("name", tempName);
     formData.append("menuId", tempMenuId);
@@ -152,16 +200,20 @@ const DocumentManager: React.FC = () => {
       formData.append("file", tempFile);
     }
 
-    const res = await fetch(`${API_DOCS}/documents/${modalDoc.id}`, {
-      method: "PUT",
-      body: formData,
-    });
+    try {
+      const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
-    const updatedDoc = await res.json();
-
-    setDocuments((prev) =>
-      prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d))
-    );
+      const updatedDoc = await res.json();
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d))
+      );
+    } catch (err) {
+      console.error("❌ Error actualizando documento:", err);
+    }
 
     setModalType(null);
     setModalDoc(null);
@@ -177,9 +229,9 @@ const DocumentManager: React.FC = () => {
     );
     setDocuments(updatedDocs);
 
-    fetch(`${API_DOCS}/documents/${docId}`, {
+    fetch(`${API_BASE}/documents/${docId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ menuId: sectionId }),
     }).catch((err) => console.error("❌ Error guardando en backend:", err));
   };
@@ -209,7 +261,7 @@ const DocumentManager: React.FC = () => {
 
       <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
 
-      {/* Modal de documentos */}
+      {/* Modal para ver documento */}
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -228,7 +280,7 @@ const DocumentManager: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Editar / Eliminar */}
+      {/* Modal editar / eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -269,7 +321,6 @@ const DocumentManager: React.FC = () => {
                     <option key={sec.id} value={sec.id}>
                       {sec.name}
                     </option>
-
                   ))}
                 </select>
 

@@ -76,14 +76,14 @@ const DocumentListPage: React.FC<Props> = ({
                   >
                     <option value="">Seleccionar</option>
                     {sections.map((sec) => (
-                      <optgroup key={sec.id} label={sec.title}>
-                        <option value={sec.id} style={{fontWeight: 'bold'}}>{sec.title}</option>
-                        {sec.items.map((item) => (
+                      <optgroup key={sec.id} label={sec.name}>
+                        <option value={sec.id} style={{fontWeight: 'bold'}}>{sec.name}</option>
+                        {sec.children.map((item) => (
                           <React.Fragment key={item.id}>
-                            <option value={item.id} style={{paddingLeft: '12px'}}>*{item.title}</option>
+                            <option value={item.id} style={{paddingLeft: '12px'}}>*{item.name}</option>
                             {item.children && item.children.map((subitem) => (
                               <option key={subitem.id} value={subitem.id} className="submenu" style={{paddingLeft: '28px', color: '#666', background: '#f4f8fc'}}>
-                                &nbsp;&nbsp;&nbsp;{item.title} / {subitem.title}
+                                &nbsp;&nbsp;&nbsp;{item.name} / {subitem.name}
                               </option>
                             ))}
                           </React.Fragment>
@@ -95,16 +95,16 @@ const DocumentListPage: React.FC<Props> = ({
                 <td>{doc.type}</td>
                 <td>{(doc.size / 1024).toFixed(2)} KB</td>
                 <td>{new Date(doc.uploadDate).toLocaleDateString()}</td><td>
-                  <button onClick={() => onView(doc)} title="Ver">
+                  <button onClick={() => onView(doc)} name="Ver">
                     <AiOutlineEye />
                   </button>
-                  <button onClick={() => onEdit(doc)} title="Editar">
+                  <button onClick={() => onEdit(doc)} name="Editar">
                     <AiOutlineEdit />
                   </button>
-                  <button onClick={() => onDownload(doc)} title="Descargar">
+                  <button onClick={() => onDownload(doc)} name="Descargar">
                     <AiOutlineDownload />
                   </button>
-                  <button onClick={() => onDelete(doc.id)} title="Eliminar">
+                  <button onClick={() => onDelete(doc.id)} name="Eliminar">
                     <AiOutlineDelete />
                   </button>
                 </td>

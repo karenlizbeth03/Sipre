@@ -13,7 +13,7 @@ export interface MenuItem {
 export interface MenuSection {
   id: string;
   name: string;
-  items: MenuItem[];
+  children: MenuItem[];
 }
 
 export interface Document {
