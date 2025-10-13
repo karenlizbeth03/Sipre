@@ -12,7 +12,7 @@ import "./DocumentListPage.css";
 
 interface Props {
   documents: Document[];
-  sections: MenuSection[]; 
+  sections: MenuSection[];
   onDelete: (id: string) => void;
   onDownload: (doc: Document) => void;
   onEdit: (doc: Document) => void;
@@ -32,8 +32,22 @@ const DocumentListPage: React.FC<Props> = ({
   const [search, setSearch] = useState("");
 
   const filteredDocs = documents.filter((doc) =>
-    doc.name.toLowerCase().includes(search.toLowerCase())
+    doc.name?.toLowerCase().includes(search.toLowerCase())
   );
+  const getMenuName = (menuId?: string): string => {
+  if (!menuId) return "—";
+
+  const findMenu = (menus: MenuSection[]): string | undefined => {
+    for (const m of menus) {
+      if (m.id === menuId) return m.name;
+      const found = m.children && findMenu(m.children);
+      if (found) return found;
+    }
+  };
+
+  return findMenu(sections) || menuId; // Si no lo encuentra, muestra el ID
+};
+
 
   return (
     <div className="document-list-page">
@@ -58,10 +72,11 @@ const DocumentListPage: React.FC<Props> = ({
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Sección</th>
               <th>Tipo</th>
-              <th>Tamaño</th>
-              <th>Subido</th>
+              {/* <th>Ruta</th> */}
+              <th>Menú ID</th>
+              <th>Última modificación</th>
+              {/* <th>Modificado por</th> */}
               <th>Acciones</th>
             </tr>
           </thead>
@@ -69,42 +84,32 @@ const DocumentListPage: React.FC<Props> = ({
             {filteredDocs.map((doc) => (
               <tr key={doc.id}>
                 <td>{doc.name}</td>
-                <td>
-                  <select
-                    value={doc.menuId || ""}
-                    onChange={(e) => onSectionChange(doc.id, e.target.value)}
-                  >
-                    <option value="">Seleccionar</option>
-                    {sections.map((sec) => (
-                      <optgroup key={sec.id} label={sec.name}>
-                        <option value={sec.id} style={{fontWeight: 'bold'}}>{sec.name}</option>
-                        {sec.children.map((item) => (
-                          <React.Fragment key={item.id}>
-                            <option value={item.id} style={{paddingLeft: '12px'}}>*{item.name}</option>
-                            {item.children && item.children.map((subitem) => (
-                              <option key={subitem.id} value={subitem.id} className="submenu" style={{paddingLeft: '28px', color: '#666', background: '#f4f8fc'}}>
-                                &nbsp;&nbsp;&nbsp;{item.name} / {subitem.name}
-                              </option>
-                            ))}
-                          </React.Fragment>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </td>
                 <td>{doc.type}</td>
-                <td>{(doc.size / 1024).toFixed(2)} KB</td>
-                <td>{new Date(doc.uploadDate).toLocaleDateString()}</td><td>
-                  <button onClick={() => onView(doc)} name="Ver">
+                {/* <td
+                  title={doc.path}
+                  style={{
+                    maxWidth: "250px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {doc.path}
+                </td> */}
+                <td>{getMenuName(doc.menuId)}</td>
+                <td>{new Date(doc.updatedAt).toLocaleString()}</td>
+                {/* <td>{doc.user_edit?.name || "—"}</td> */}
+                <td>
+                  <button onClick={() => onView(doc)} title="Ver">
                     <AiOutlineEye />
                   </button>
-                  <button onClick={() => onEdit(doc)} name="Editar">
+                  <button onClick={() => onEdit(doc)} title="Editar">
                     <AiOutlineEdit />
                   </button>
-                  <button onClick={() => onDownload(doc)} name="Descargar">
+                  <button onClick={() => onDownload(doc)} title="Descargar">
                     <AiOutlineDownload />
                   </button>
-                  <button onClick={() => onDelete(doc.id)} name="Eliminar">
+                  <button onClick={() => onDelete(doc.id)} title="Eliminar">
                     <AiOutlineDelete />
                   </button>
                 </td>
@@ -112,6 +117,7 @@ const DocumentListPage: React.FC<Props> = ({
             ))}
           </tbody>
         </table>
+
       )}
     </div>
   );

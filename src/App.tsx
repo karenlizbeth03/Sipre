@@ -41,11 +41,7 @@ function App() {
 
   return (
     <div className="app">
-      <div style={{ position: 'fixed', top: 20, right: 20 }}>
-        <button onClick={toggleRole} className="btn toggle">
-          Cambiar a {userRole === 'user' ? 'Admin' : 'Usuario'}
-        </button>
-      </div>
+      
 
       {userRole === 'admin' && (
         <Dashboard

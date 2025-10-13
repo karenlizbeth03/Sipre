@@ -16,20 +16,29 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
     try {
-      const res = await fetch('http://192.168.2.169:3000/auth/login', {
+      const res = await fetch('http://192.168.2.181:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
-        onLoginSuccess('success');
+        const token = data.data; // <-- aquí tomamos directamente el string del token
+        if (!token) throw new Error('Token no recibido del servidor');
+
+        localStorage.setItem('token', token); // Guardamos el token
+        onLoginSuccess(token); // Lo pasamos al componente padre
       } else {
-        setError('Credenciales inválidas');
+        setError(data.message || 'Credenciales inválidas');
       }
-    } catch (err) {
-      setError('Error de conexión');
+    } catch (err: any) {
+      console.error('Error en login:', err);
+      setError(err.message || 'Error de conexión con el servidor');
     }
   };
 

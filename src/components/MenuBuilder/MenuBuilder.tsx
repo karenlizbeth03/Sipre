@@ -4,15 +4,36 @@ import { MenuItemForm } from "../MenuItemForm/MenuItemForm";
 import { useMenu } from "../../hooks/useMenu";
 import "./MenuBuilder.css";
 
-const API_URL = "http://192.168.2.169:3000/menus";
+const API_URL = "http://192.168.2.181:3000/menus";
 
-// ✅ Normalizador recursivo correcto (usa "children")
+// Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {
-  return menus.map((menu) => ({
-    id: menu.id,
-    name: menu.name,
-    children: normalizeMenuTree(menu.submenus || []),
-  }));
+  return menus.map((menu) => {
+    const section: MenuSection = {
+      id: menu.id,
+      name: menu.name,
+      children: [], // sub-secciones si aplica
+      items: [],    // submenús/items
+    };
+
+    if (menu.submenus && menu.submenus.length > 0) {
+      section.items = menu.submenus.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        parent_menu_id: item.parent_menu_id || null,
+        children: item.submenus
+          ? item.submenus.map((sub: any) => ({
+              id: sub.id,
+              name: sub.name,
+              parent_menu_id: sub.parent_menu_id,
+              children: [],
+            }))
+          : [],
+      }));
+    }
+
+    return section;
+  });
 };
 
 const MenuBuilder: React.FC = () => {
@@ -23,7 +44,7 @@ const MenuBuilder: React.FC = () => {
   const [newSectionname, setNewSectionname] = useState("");
   const [openSections, setOpenSections] = useState<string[]>([]);
 
-  // 🚀 Fetch inicial desde backend
+  // 🚀 Fetch inicial
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -33,76 +54,110 @@ const MenuBuilder: React.FC = () => {
         const result = await res.json();
         const normalized = normalizeMenuTree(result.data || []);
         setSections(normalized);
-
-        console.info("✅ Menús cargados desde backend:", normalized);
       } catch (err) {
         console.error("❌ Error cargando menús:", err);
       }
     };
-
     fetchMenus();
   }, []);
 
-  // 📌 Crear nueva sección
+  // Crear nueva sección raíz
   const handleAddSection = async () => {
     if (!newSectionname.trim()) return;
 
     try {
+      const token = localStorage.getItem("token") || "";
+      const payload = { name: newSectionname.trim() };
+
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newSectionname, parent_menu_id: null }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Error al crear menú");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al crear sección");
+      }
 
       const result = await res.json();
-      const newMenu = {
+      const newSection: MenuSection = {
         id: result.data.id,
         name: result.data.name,
         children: [],
+        items: [],
       };
 
-      setSections((prev) => [...prev, newMenu]);
+      setSections((prev) => [...prev, newSection]);
       setNewSectionname("");
     } catch (err) {
       console.error("❌ Error creando sección:", err);
     }
   };
 
-  // 📌 Agregar submenú
-  const handleAddMenuItem = async (
-    sectionId: string,
-    parentId: string | null,
-    itemData: Omit<MenuItem, "id">
-  ) => {
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: itemData.name,
-          parent_menu_id: parentId,
-        }),
-      });
+// Crear submenú o item
+const handleAddMenuItem = async (
+  sectionId: string,
+  parentId: string | null,
+  itemData: Omit<MenuItem, 'id'>
+) => {
+  if (!itemData.name.trim()) return;
 
-      if (!res.ok) throw new Error("Error al crear submenú");
+  try {
+    const token = localStorage.getItem('token') || '';
 
-      const result = await res.json();
-      const newItem: MenuItem = {
-        id: result.data.id,
-        name: result.data.name,
-        children: [],
-      };
+    // Construir payload
+    const payload: any = { name: itemData.name.trim() };
 
-      addMenuItem(sectionId, newItem, parentId || undefined);
-      setActiveItem(null);
-    } catch (err) {
-      console.error("❌ Error creando submenú:", err);
+    if (parentId) {
+      // Submenú → enviar parent_menu_id
+      payload.parent_menu_id = parentId;
+    } else {
+      // Item raíz dentro de la sección → enviar section_id
+      payload.section_id = sectionId;
     }
-  };
 
-  // 📌 Actualizar menú
+    console.log('📤 Payload que se enviará:', payload);
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+    if (!res.ok) {
+      console.error('❌ Respuesta del backend:', result);
+      throw new Error(result.message || 'Error al crear menú/submenú');
+    }
+
+    // Crear objeto MenuItem para frontend
+    const newItem: MenuItem = {
+      id: result.data.id,
+      name: result.data.name,
+      parent_menu_id: parentId || undefined, // submenú tendrá parentId, item raíz undefined
+      children: [],
+    };
+
+    // Agregar item en la sección correspondiente
+    addMenuItem(sectionId, newItem, parentId || undefined);
+    setActiveItem(null);
+
+    console.log('✅ Menú/submenú creado con éxito:', newItem);
+  } catch (err) {
+    console.error('❌ Error creando menú/submenú:', err);
+  }
+};
+
+
+
+  // Actualizar menú
   const handleUpdateMenuItem = async (
     sectionId: string,
     itemId: string,
@@ -124,19 +179,22 @@ const MenuBuilder: React.FC = () => {
     }
   };
 
-  // 📌 Eliminar menú o sección
-  const handleRemoveSection = async (sectionId: string) => {
-    try {
-      const res = await fetch(`${API_URL}/${sectionId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Error al eliminar sección");
+  // Eliminar sección
+  const SECTIONS_API_URL = "http://192.168.2.181:3000/sections";
 
-      removeSection(sectionId);
-      setSections((prev) => prev.filter((s) => s.id !== sectionId));
-    } catch (err) {
-      console.error("❌ Error eliminando sección:", err);
-    }
-  };
+const handleRemoveSection = async (sectionId: string) => {
+  try {
+    const res = await fetch(`${SECTIONS_API_URL}/${sectionId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Error al eliminar sección");
 
+    removeSection(sectionId);
+    setSections((prev) => prev.filter((s) => s.id !== sectionId));
+  } catch (err) {
+    console.error("❌ Error eliminando sección:", err);
+  }
+};
+
+  // Eliminar item
   const handleRemoveItem = async (sectionId: string, itemId: string) => {
     try {
       const res = await fetch(`${API_URL}/${itemId}`, { method: "DELETE" });
@@ -156,12 +214,8 @@ const MenuBuilder: React.FC = () => {
     );
   };
 
-  // 🔁 Renderizado recursivo
-  const renderMenuItems = (
-    items: MenuItem[],
-    sectionId: string,
-    level = 0
-  ) => (
+  // Render recursivo de items/submenús
+  const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
     <ul
       className="menu-list"
       style={{
@@ -184,18 +238,15 @@ const MenuBuilder: React.FC = () => {
             </div>
           </div>
 
-          {/* 👇 Render recursivo */}
-          {item.children &&
-            item.children.length > 0 &&
+          {/* Render recursivo */}
+          {item.children && item.children.length > 0 &&
             renderMenuItems(item.children, sectionId, level + 1)}
 
           {activeItem === item.id && (
             <MenuItemForm
               key={`add-${item.id}`}
               mode="add"
-              onAddItem={(data) =>
-                handleAddMenuItem(sectionId, item.id, data)
-              }
+              onAddItem={(data) => handleAddMenuItem(sectionId, item.id, data)}
               onCancel={() => setActiveItem(null)}
             />
           )}
@@ -239,9 +290,7 @@ const MenuBuilder: React.FC = () => {
             <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span>{section.name}</span>
               <span
-                className={`arrow ${
-                  openSections.includes(section.id) ? "open" : ""
-                }`}
+                className={`arrow ${openSections.includes(section.id) ? "open" : ""}`}
               >
                 ▼
               </span>
@@ -256,9 +305,11 @@ const MenuBuilder: React.FC = () => {
             </button>
           </h3>
 
+          {/* Render items/submenús */}
           {openSections.includes(section.id) &&
-            renderMenuItems(section.children, section.id)}
+            renderMenuItems(section.items || [], section.id)}
 
+          {/* Agregar item raíz */}
           {activeItem === section.id && (
             <MenuItemForm
               key={`add-root-${section.id}`}

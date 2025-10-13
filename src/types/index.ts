@@ -13,7 +13,8 @@ export interface MenuItem {
 export interface MenuSection {
   id: string;
   name: string;
-  children: MenuItem[];
+  children: MenuSection[];
+  items?: MenuItem[];
 }
 
 export interface Document {
@@ -23,5 +24,13 @@ export interface Document {
   size: number;
   uploadDate: string;
   url: string;
-  menuId?: string; // 🔑 para saber a qué menú pertenece
+  menuId?: string;
+  menuName?: string;
+  path: string;
+  state: number;
+  updatedAt: string;
+  user_edit?: {
+    id: string;
+    name: string;
+  };
 }

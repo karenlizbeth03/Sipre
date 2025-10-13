@@ -13,9 +13,16 @@ export interface Document {
   uploadDate: string;
   url: string;
   menuId?: string;
+  path: string;
+  state: number;
+  updatedAt: string;
+  user_edit?: {
+    id: string;
+    name: string;
+  };
 }
 
-const API_BASE = "http://192.168.2.169:3000";
+const API_BASE = "http://192.168.2.181:3000";
 
 const DocumentManager: React.FC = () => {
   const { sections, setSections } = useMenu();
@@ -26,10 +33,12 @@ const DocumentManager: React.FC = () => {
   const [tempName, setTempName] = useState("");
   const [tempMenuId, setTempMenuId] = useState("");
   const [tempFile, setTempFile] = useState<File | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
-  // Helper para encabezados
+  // ===================== 🔐 HEADERS =====================
   const authHeaders = (contentType = "application/json") => {
     const token = localStorage.getItem("token");
     return {
@@ -42,117 +51,78 @@ const DocumentManager: React.FC = () => {
   useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/menus`, {
-          headers: authHeaders(),
-        });
+        const res = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
         if (res.status === 401) throw new Error("No autorizado");
         const data = await res.json();
         setSections(data.data || []);
       } catch (err) {
-        console.error("❌ Error cargando menús:", err);
+        console.error(" Error cargando menús:", err);
       }
     };
     fetchMenus();
   }, [setSections]);
 
-  const createMenu = async (name: string, parentId: string | null = null) => {
-    try {
-      const res = await fetch(`${API_BASE}/menus`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({ name, parent_menu_id: parentId }),
-      });
-      const result = await res.json();
-      setSections((prev: any) => [...prev, result.data]);
-    } catch (err) {
-      console.error("❌ Error creando menú:", err);
-    }
-  };
-
-  const updateMenu = async (id: string, name: string) => {
-    try {
-      await fetch(`${API_BASE}/menus/${id}`, {
-        method: "PUT",
-        headers: authHeaders(),
-        body: JSON.stringify({ name }),
-      });
-      setSections((prev: any) =>
-        prev.map((menu: any) => (menu.id === id ? { ...menu, name } : menu))
-      );
-    } catch (err) {
-      console.error("❌ Error actualizando menú:", err);
-    }
-  };
-
-  const deleteMenu = async (id: string) => {
-    try {
-      await fetch(`${API_BASE}/menus/${id}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
-      setSections((prev: any) => prev.filter((menu: any) => menu.id !== id));
-    } catch (err) {
-      console.error("❌ Error eliminando menú:", err);
-    }
-  };
-
   // ===================== 📄 DOCUMENTOS =====================
   useEffect(() => {
     const fetchDocuments = async () => {
-  console.log(" Cargando documentos desde el backend...");
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/documents`, {
+          headers: authHeaders(),
+        });
+        const data = await response.json();
 
-  const token = localStorage.getItem("token");
-  console.log(" Token recuperado:", token); 
+        if (!response.ok) throw new Error(data.message || "Error al cargar documentos");
 
-  try {
-    const response = await fetch("http://192.168.2.169:3000/documents", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    });
+        const normalizedDocs = (data.data || []).map((doc: any) => ({
+          ...doc,
+          menuId: doc.menu?.id || "",
+        }));
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
+        setDocuments(normalizedDocs);
+      } catch (error) {
+        console.error("Error cargando documentos:", error);
+        setStatusMessage(" Error al cargar documentos. Verifique su conexión o sesión.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    const data = await response.json();
-    console.log(" Documentos cargados:", data.data);
-    setDocuments(data.data);
-  } catch (error) {
-    console.error(" Error cargando documentos:", error);
-  }
-};
     fetchDocuments();
   }, []);
 
+  // ===================== 📤 SUBIR DOCUMENTOS =====================
   const handleUpload = async (files: FileList, menuId: string) => {
     const fileArray = Array.from(files);
     const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
 
     for (const file of fileArray) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("menuId", menuId);
+      formData.append("name", file.name);
+      formData.append("menu_id", menuId);
+      if (userId) formData.append("user_id", userId);
 
       try {
-        const res = await fetch(`${API_BASE}/documents/upload`, {
+        const res = await fetch(`${API_BASE}/documents`, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
 
-        const newDoc = await res.json();
-        setDocuments((prev) => [...prev, newDoc.data || newDoc]);
+        const data = await res.json();
+        if (!res.ok) throw new Error(`Error ${res.status}: ${data.message}`);
+
+        setDocuments((prev) => [...prev, data.data]);
       } catch (err) {
-        console.error("❌ Error subiendo documento:", err);
+        console.error(" Error subiendo documento:", err);
+        alert("Error subiendo documento. Revisa consola para más detalles.");
       }
     }
   };
 
+  // ===================== EDITAR / ELIMINAR =====================
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
     if (!doc) return;
@@ -162,7 +132,6 @@ const DocumentManager: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!modalDoc) return;
-
     try {
       await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
         method: "DELETE",
@@ -170,15 +139,10 @@ const DocumentManager: React.FC = () => {
       });
       setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
     } catch (err) {
-      console.error("❌ Error eliminando documento:", err);
+      console.error(" Error eliminando documento:", err);
     }
-
     setModalType(null);
     setModalDoc(null);
-  };
-
-  const handleDownload = (doc: Document) => {
-    window.open(doc.url, "_blank");
   };
 
   const handleEdit = (doc: Document) => {
@@ -193,50 +157,52 @@ const DocumentManager: React.FC = () => {
     if (!modalDoc) return;
 
     const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
     const formData = new FormData();
+
+    formData.append("id", modalDoc.id);
     formData.append("name", tempName);
-    formData.append("menuId", tempMenuId);
-    if (tempFile) {
-      formData.append("file", tempFile);
-    }
+    formData.append("menu_id", tempMenuId);
+    if (userId) formData.append("user_id", userId);
+    if (tempFile) formData.append("file", tempFile);
 
     try {
-      const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
-        method: "PUT",
+      const res = await fetch(`${API_BASE}/documents`, {
+        method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
-      const updatedDoc = await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(`Error ${res.status}: ${JSON.stringify(data)}`);
+
       setDocuments((prev) =>
-        prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d))
+        prev.map((d) => (d.id === data.data.id ? data.data : d))
       );
     } catch (err) {
-      console.error("❌ Error actualizando documento:", err);
+      console.error("Error actualizando documento:", err);
+      alert("Error actualizando documento. Revisa consola para más detalles.");
     }
 
     setModalType(null);
     setModalDoc(null);
   };
 
-  const handleView = (doc: Document) => {
-    setSelectedDocument(doc);
-  };
+  const handleView = (doc: Document) => setSelectedDocument(doc);
 
   const handleSectionChange = (docId: string, sectionId: string) => {
-    const updatedDocs = documents.map((doc) =>
-      doc.id === docId ? { ...doc, menuId: sectionId } : doc
+    setDocuments((prev) =>
+      prev.map((doc) => (doc.id === docId ? { ...doc, menuId: sectionId } : doc))
     );
-    setDocuments(updatedDocs);
 
     fetch(`${API_BASE}/documents/${docId}`, {
       method: "PUT",
       headers: authHeaders(),
       body: JSON.stringify({ menuId: sectionId }),
-    }).catch((err) => console.error("❌ Error guardando en backend:", err));
+    }).catch((err) => console.error("Error guardando en backend:", err));
   };
 
-  // ===================== 📌 RENDER =====================
+  // ===================== RENDER =====================
   return (
     <div className="document-manager">
       <div className="document-header">
@@ -249,19 +215,23 @@ const DocumentManager: React.FC = () => {
         </button>
       </div>
 
+      {/* 🔹 DocumentUpload maneja su propio modal */}
+      <DocumentUpload
+        ref={uploadRef}
+        onUpload={handleUpload}
+        sections={sections}
+      />
+
       <DocumentListPage
         documents={documents}
         sections={sections}
         onDelete={handleDelete}
-        onDownload={handleDownload}
+        onDownload={(doc) => window.open(`${API_BASE}/uploads/${doc.path}`, "_blank")}
         onEdit={handleEdit}
         onView={handleView}
         onSectionChange={handleSectionChange}
       />
 
-      <DocumentUpload ref={uploadRef} onUpload={handleUpload} />
-
-      {/* Modal para ver documento */}
       {selectedDocument && (
         <div className="modal-overlay" onClick={() => setSelectedDocument(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -275,7 +245,12 @@ const DocumentManager: React.FC = () => {
                 ✖
               </button>
             </div>
-            <DocumentViewer document={selectedDocument} />
+            <DocumentViewer
+              document={{
+                ...selectedDocument,
+                url: `${API_BASE}/documents/view/${selectedDocument.id}`,
+              }}
+            />
           </div>
         </div>
       )}
@@ -309,7 +284,6 @@ const DocumentManager: React.FC = () => {
                   onChange={(e) => setTempName(e.target.value)}
                   className="modal-input"
                 />
-
                 <label>Sección:</label>
                 <select
                   value={tempMenuId}
@@ -318,9 +292,14 @@ const DocumentManager: React.FC = () => {
                 >
                   <option value="">-- Seleccionar sección --</option>
                   {sections.map((sec) => (
-                    <option key={sec.id} value={sec.id}>
-                      {sec.name}
-                    </option>
+                    <React.Fragment key={sec.id}>
+                      <option value={sec.id}>{sec.name}</option>
+                      {sec.children?.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          └─ {child.name}
+                        </option>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </select>
 

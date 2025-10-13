@@ -39,7 +39,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   useEffect(() => {
   const fetchMenu = async () => {
     try {
-      const res = await fetch("http://192.168.2.169:3000/menus");
+      const res = await fetch("http://192.168.2.181:3000/menus");
       if (!res.ok) throw new Error("Error al cargar menú");
       const result = await res.json();
 
@@ -62,9 +62,9 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       }));
 
       setSections(normalizedSections);
-      console.info("✅ Menú cargado desde backend:", normalizedSections);
+      console.info("Menú cargado desde backend:", normalizedSections);
     } catch (err) {
-      console.error("❌ No se pudo cargar el menú:", err);
+      console.error("No se pudo cargar el menú:", err);
     }
   };
 
