@@ -153,40 +153,43 @@ const DocumentManager: React.FC = () => {
     setTempFile(null);
   };
 
-  const saveModalChanges = async () => {
-    if (!modalDoc) return;
+ const saveModalChanges = async () => {
+  if (!modalDoc) return;
 
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("user_id");
-    const formData = new FormData();
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("user_id");
+  const formData = new FormData();
 
-    formData.append("id", modalDoc.id);
-    formData.append("name", tempName);
-    formData.append("menu_id", tempMenuId);
-    if (userId) formData.append("user_id", userId);
-    if (tempFile) formData.append("file", tempFile);
+  formData.append("name", tempName);
+  formData.append("menu_id", tempMenuId);
+  if (userId) formData.append("user_id", userId);
+  if (tempFile) formData.append("file", tempFile);
 
-    try {
-      const res = await fetch(`${API_BASE}/documents`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+  try {
+    const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(`Error ${res.status}: ${JSON.stringify(data)}`);
-
-      setDocuments((prev) =>
-        prev.map((d) => (d.id === data.data.id ? data.data : d))
-      );
-    } catch (err) {
-      console.error("Error actualizando documento:", err);
-      alert("Error actualizando documento. Revisa consola para más detalles.");
+    if (!res.ok) {
+      const text = await res.text(); // leer texto por si es error HTML
+      throw new Error(`Error ${res.status}: ${text}`);
     }
 
-    setModalType(null);
-    setModalDoc(null);
-  };
+    const data = await res.json();
+    setDocuments((prev) =>
+      prev.map((d) => (d.id === data.data.id ? data.data : d))
+    );
+  } catch (err) {
+    console.error("Error actualizando documento:", err);
+    alert("Error actualizando documento. Revisa consola para más detalles.");
+  }
+
+  setModalType(null);
+  setModalDoc(null);
+};
+
 
   const handleView = (doc: Document) => setSelectedDocument(doc);
 

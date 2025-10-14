@@ -28,11 +28,11 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
       const data = await res.json();
 
       if (res.ok) {
-        const token = data.data; // <-- aquí tomamos directamente el string del token
+        const token = data.data; 
         if (!token) throw new Error('Token no recibido del servidor');
 
-        localStorage.setItem('token', token); // Guardamos el token
-        onLoginSuccess(token); // Lo pasamos al componente padre
+        localStorage.setItem('token', token); 
+        onLoginSuccess(token); 
       } else {
         setError(data.message || 'Credenciales inválidas');
       }

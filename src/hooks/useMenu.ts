@@ -21,9 +21,9 @@ export const useMenu = () => {
         section.id === sectionId
           ? {
             ...section,
-            children: parentId
-              ? addChild(section.children, parentId, item)
-              : [...section.children, item],
+            items: parentId
+              ? addChild(section.items || [], parentId, item)
+              : [...(section.items || []), item],
           }
           : section
       )
@@ -36,7 +36,7 @@ export const useMenu = () => {
         section.id === sectionId
           ? {
             ...section,
-            children: updateChild(section.children, itemId, newData),
+            items: updateChild(section.items || [], itemId, newData),
           }
           : section
       )
@@ -47,7 +47,7 @@ export const useMenu = () => {
     setSections(prev =>
       prev.map(section =>
         section.id === sectionId
-          ? { ...section, children: deleteChild(section.children, itemId) }
+          ? { ...section, items: deleteChild(section.items || [], itemId) }
           : section
       )
     );
@@ -82,3 +82,6 @@ const deleteChild = (children: MenuItem[], itemId: string): MenuItem[] => {
     .filter(item => item.id !== itemId)
     .map(item => ({ ...item, children: item.children ? deleteChild(item.children, itemId) : [] }));
 };
+
+// Si necesitas procesar las secciones, hazlo dentro del hook o exporta una función que lo haga.
+// El siguiente bloque fue eliminado porque 'sections' no existe en el ámbito global.

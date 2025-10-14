@@ -8,32 +8,17 @@ const API_URL = "http://192.168.2.201:3000/menus";
 
 // Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {
-  return menus.map((menu) => {
-    const section: MenuSection = {
-      id: menu.id,
-      name: menu.name,
-      children: [], // sub-secciones si aplica
-      items: [],    // submenús/items
-    };
-
-    if (menu.submenus && menu.submenus.length > 0) {
-      section.items = menu.submenus.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        parent_menu_id: item.parent_menu_id || null,
-        children: item.submenus
-          ? item.submenus.map((sub: any) => ({
-              id: sub.id,
-              name: sub.name,
-              parent_menu_id: sub.parent_menu_id,
-              children: [],
-            }))
-          : [],
-      }));
-    }
-
-    return section;
-  });
+  return menus.map((menu) => ({
+    id: menu.id,
+    name: menu.name,
+    children: menu.submenus ? normalizeMenuTree(menu.submenus) : [],
+    items: menu.submenus ? menu.submenus.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      parent_menu_id: item.parent_menu_id || null,
+      children: item.submenus ? normalizeMenuTree(item.submenus) : [],
+    })) : [],
+  }));
 };
 
 const MenuBuilder: React.FC = () => {
@@ -44,7 +29,7 @@ const MenuBuilder: React.FC = () => {
   const [newSectionname, setNewSectionname] = useState("");
   const [openSections, setOpenSections] = useState<string[]>([]);
 
-  // 🚀 Fetch inicial
+  // Fetch inicial
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -55,19 +40,83 @@ const MenuBuilder: React.FC = () => {
         const normalized = normalizeMenuTree(result.data || []);
         setSections(normalized);
       } catch (err) {
-        console.error("❌ Error cargando menús:", err);
+        console.error(" Error cargando menús:", err);
       }
     };
     fetchMenus();
   }, []);
 
-  // Crear nueva sección raíz
+  // Crear sección raíz
   const handleAddSection = async () => {
     if (!newSectionname.trim()) return;
-
     try {
       const token = localStorage.getItem("token") || "";
       const payload = { name: newSectionname.trim() };
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al crear sección");
+
+      const newSection: MenuSection = {
+        id: result.data.id,
+        name: result.data.name,
+        children: [],
+        items: [],
+      };
+      setSections((prev) => [...prev, newSection]);
+      setNewSectionname("");
+    } catch (err) {
+      console.error(" Error creando sección:", err);
+    }
+  };
+
+  // Crear submenú o item
+  const handleAddMenuItem = async (
+    sectionId: string,
+    parentId: string | null,
+    itemData: Omit<MenuItem, "id">
+  ) => {
+    if (!itemData.name.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token") || "";
+
+      // Buscar nivel
+      const findMenuLevel = (items: MenuItem[], id: string, level = 0): number | null => {
+        for (const item of items) {
+          if (item.id === id) return level;
+          if (item.children?.length) {
+            const found = findMenuLevel(item.children, id, level + 1);
+            if (found !== null) return found;
+          }
+        }
+        return null;
+      };
+
+      const payload: any = {
+        name: itemData.name.trim(),
+        parent_menu_id: parentId,
+        menu_level: "0",
+      };
+
+      if (parentId) {
+        const section = sections.find((s) => s.id === sectionId);
+        if (section) {
+          const parentLevel = findMenuLevel(section.items ?? [], parentId);
+          payload.menu_level = parentLevel !== null ? String(parentLevel + 1) : "1";
+        }
+      } else {
+        payload.parent_menu_id = null;
+        payload.menu_level = "0";
+      }
+
+      console.log("📤 Payload que se enviará:", payload);
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -78,84 +127,26 @@ const MenuBuilder: React.FC = () => {
         body: JSON.stringify(payload),
       });
 
+      const result = await res.json();
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error al crear sección");
+        console.error(" Respuesta del backend:", result);
+        throw new Error(result.message || "Error al crear menú/submenú");
       }
 
-      const result = await res.json();
-      const newSection: MenuSection = {
+      const newItem: MenuItem = {
         id: result.data.id,
         name: result.data.name,
+        parent_menu_id: payload.parent_menu_id,
         children: [],
-        items: [],
       };
 
-      setSections((prev) => [...prev, newSection]);
-      setNewSectionname("");
+      addMenuItem(sectionId, newItem, parentId || undefined);
+      setActiveItem(null);
+      console.log("✅ Menú/submenú creado con éxito:", newItem);
     } catch (err) {
-      console.error("❌ Error creando sección:", err);
+      console.error(" Error creando menú/submenú:", err);
     }
   };
-
-// Crear submenú o item
-const handleAddMenuItem = async (
-  sectionId: string,
-  parentId: string | null,
-  itemData: Omit<MenuItem, 'id'>
-) => {
-  if (!itemData.name.trim()) return;
-
-  try {
-    const token = localStorage.getItem('token') || '';
-
-    // Construir payload
-    const payload: any = { name: itemData.name.trim() };
-
-    if (parentId) {
-      // Submenú → enviar parent_menu_id
-      payload.parent_menu_id = parentId;
-    } else {
-      // Item raíz dentro de la sección → enviar section_id
-      payload.section_id = sectionId;
-    }
-
-    console.log('📤 Payload que se enviará:', payload);
-
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await res.json();
-    if (!res.ok) {
-      console.error('❌ Respuesta del backend:', result);
-      throw new Error(result.message || 'Error al crear menú/submenú');
-    }
-
-    // Crear objeto MenuItem para frontend
-    const newItem: MenuItem = {
-      id: result.data.id,
-      name: result.data.name,
-      parent_menu_id: parentId || undefined, // submenú tendrá parentId, item raíz undefined
-      children: [],
-    };
-
-    // Agregar item en la sección correspondiente
-    addMenuItem(sectionId, newItem, parentId || undefined);
-    setActiveItem(null);
-
-    console.log('✅ Menú/submenú creado con éxito:', newItem);
-  } catch (err) {
-    console.error('❌ Error creando menú/submenú:', err);
-  }
-};
-
-
 
   // Actualizar menú
   const handleUpdateMenuItem = async (
@@ -169,40 +160,52 @@ const handleAddMenuItem = async (
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: itemData.name }),
       });
-
       if (!res.ok) throw new Error("Error al actualizar menú");
-
       updateMenuItem(sectionId, itemId, itemData);
       setEditItemId(null);
     } catch (err) {
-      console.error("❌ Error actualizando menú:", err);
+      console.error(" Error actualizando menú:", err);
     }
   };
 
   // Eliminar sección
-  const SECTIONS_API_URL = "http://192.168.2.201:3000/sections";
+  const handleRemoveSection = async (sectionId: string) => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API_URL}/${sectionId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al eliminar sección");
 
-const handleRemoveSection = async (sectionId: string) => {
-  try {
-    const res = await fetch(`${SECTIONS_API_URL}/${sectionId}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("Error al eliminar sección");
-
-    removeSection(sectionId);
-    setSections((prev) => prev.filter((s) => s.id !== sectionId));
-  } catch (err) {
-    console.error("❌ Error eliminando sección:", err);
-  }
-};
+      setSections((prev) => prev.filter((s) => s.id !== sectionId));
+      removeSection(sectionId);
+    } catch (err) {
+      console.error(" Error eliminando sección:", err);
+    }
+  };
 
   // Eliminar item
   const handleRemoveItem = async (sectionId: string, itemId: string) => {
     try {
-      const res = await fetch(`${API_URL}/${itemId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Error al eliminar item");
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API_URL}/${itemId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al eliminar menú/submenú");
 
       removeMenuItem(sectionId, itemId);
     } catch (err) {
-      console.error("❌ Error eliminando item:", err);
+      console.error(" Error eliminando item:", err);
     }
   };
 
@@ -214,7 +217,7 @@ const handleRemoveSection = async (sectionId: string) => {
     );
   };
 
-  // Render recursivo de items/submenús
+  // Render recursivo de items
   const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
     <ul
       className="menu-list"
@@ -238,8 +241,7 @@ const handleRemoveSection = async (sectionId: string) => {
             </div>
           </div>
 
-          {/* Render recursivo */}
-          {item.children && item.children.length > 0 &&
+          {Array.isArray(item.children) && item.children.length > 0 &&
             renderMenuItems(item.children, sectionId, level + 1)}
 
           {activeItem === item.id && (
@@ -256,9 +258,7 @@ const handleRemoveSection = async (sectionId: string) => {
               key={`edit-${item.id}`}
               mode="edit"
               initialData={{ name: item.name }}
-              onSubmit={(data) =>
-                handleUpdateMenuItem(sectionId, item.id, data)
-              }
+              onSubmit={(data) => handleUpdateMenuItem(sectionId, item.id, data)}
               onCancel={() => setEditItemId(null)}
             />
           )}
@@ -289,9 +289,7 @@ const handleRemoveSection = async (sectionId: string) => {
           >
             <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span>{section.name}</span>
-              <span
-                className={`arrow ${openSections.includes(section.id) ? "open" : ""}`}
-              >
+              <span className={`arrow ${openSections.includes(section.id) ? "open" : ""}`}>
                 ▼
               </span>
             </span>
@@ -305,7 +303,6 @@ const handleRemoveSection = async (sectionId: string) => {
             </button>
           </h3>
 
-          {/* Render items/submenús */}
           {openSections.includes(section.id) &&
             renderMenuItems(section.items || [], section.id)}
 
@@ -314,7 +311,7 @@ const handleRemoveSection = async (sectionId: string) => {
             <MenuItemForm
               key={`add-root-${section.id}`}
               mode="add"
-              onAddItem={(data) => handleAddMenuItem(section.id, null, data)}
+              onAddItem={(data) => handleAddMenuItem(section.id, section.id, data)}
               onCancel={() => setActiveItem(null)}
             />
           )}

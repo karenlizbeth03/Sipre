@@ -12,7 +12,7 @@ import {
   AiOutlineDownload,
 } from "react-icons/ai";
 import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
-import Login from '../../../components/Login/Login';
+import Login from "../../../components/Login/Login";
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -21,6 +21,7 @@ interface DashboardUserProps {
   setFilteredDocs: React.Dispatch<React.SetStateAction<Document[]>>;
   filteredDocs: Document[];
 }
+
 const DashboardUser: React.FC<DashboardUserProps> = ({
   activeMenu,
   setActiveMenu,
@@ -31,107 +32,114 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSection, setOpenSection] = useState<string | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [openchildren, setOpenchildren] = useState<Record<string, boolean>>({});
+  const [menuDocs, setMenuDocs] = useState<Record<string, Document[]>>({});
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [showLogin, setShowLogin] = useState(false);
 
+  // 🔹 Carga inicial del menú
   useEffect(() => {
-  const fetchMenu = async () => {
-    try {
-      const res = await fetch("http://192.168.2.201:3000/menus");
-      if (!res.ok) throw new Error("Error al cargar menú");
-      const result = await res.json();
+    const fetchMenu = async () => {
+      try {
+        const res = await fetch("http://192.168.2.201:3000/menus");
+        if (!res.ok) throw new Error("Error al cargar menú");
+        const result = await res.json();
 
-      // 🔁 Función recursiva para convertir submenus → children
-      const normalizeMenu = (menuchildren: any[]): any[] => {
-        return menuchildren.map((item) => ({
-          id: item.id,
-          name: item.name,
-          parentId: item.parent_menu_id,
-          level: item.menu_level,
-          children: item.submenus ? normalizeMenu(item.submenus) : [], // 👈 anidar
+        const normalizeMenu = (menuchildren: any[]): any[] =>
+          menuchildren.map((item) => ({
+            id: item.id,
+            name: item.name,
+            parentId: item.parent_menu_id,
+            level: item.menu_level,
+            children: item.submenus ? normalizeMenu(item.submenus) : [],
+          }));
+
+        const normalizedSections = (result.data || []).map((menu: any) => ({
+          id: menu.id,
+          name: menu.name,
+          children: normalizeMenu(menu.submenus || []),
         }));
-      };
 
-      // Creamos las secciones principales (nivel 0)
-      const normalizedSections = (result.data || []).map((menu: any) => ({
-        id: menu.id,
-        name: menu.name,
-        children: normalizeMenu(menu.submenus || []),
-      }));
+        setSections(normalizedSections);
+        console.info("📁 Menú cargado:", normalizedSections);
+      } catch (err) {
+        console.error(" No se pudo cargar el menú:", err);
+      }
+    };
 
-      setSections(normalizedSections);
-      console.info("Menú cargado desde backend:", normalizedSections);
-    } catch (err) {
-      console.error("No se pudo cargar el menú:", err);
-    }
-  };
+    fetchMenu();
+  }, []);
 
-  fetchMenu();
-
-  // Documentos
-  const fetchDocuments = async () => {
+  // 🔹 Cargar documentos de un menú específico
+  const handleMenuClick = async (item: MenuItem) => {
     try {
-      console.info("⏳ Cargando documentos desde el backend...");
-      const res = await fetch("http://localhost:4000/documents");
-      if (!res.ok) throw new Error("❌ Error en la respuesta del servidor");
-      const data: Document[] = await res.json();
-      const normalizedDocs = data.map((doc) => ({
-        ...doc,
-        menuId: doc.menuId?.toString(),
-      }));
-      setDocuments(normalizedDocs);
-      setFilteredDocs(normalizedDocs);
-      localStorage.setItem("documents", JSON.stringify(normalizedDocs));
-      console.info(`📄 Documentos cargados (${normalizedDocs.length})`);
+      console.info(`📂 Cargando documentos del menú: ${item.name} (${item.id})`);
+
+      // evitar recargar si ya existen en cache
+      if (menuDocs[item.id]) {
+        setFilteredDocs(menuDocs[item.id]);
+        setActiveMenu(item.id as unknown as MenuOption);
+        return;
+      }
+
+      const res = await fetch(
+        `http://192.168.2.201:3000/documents/get-by-menu/${item.id}`
+      );
+      if (!res.ok) throw new Error("Error al cargar documentos por menú");
+
+      const result = await res.json();
+      const docsForMenu: Document[] = result.data || [];
+
+      // guardar cache local
+      setMenuDocs((prev) => ({ ...prev, [item.id]: docsForMenu }));
+
+      setFilteredDocs(docsForMenu);
+      setActiveMenu(item.id as unknown as MenuOption);
+
+      console.info(`✅ ${docsForMenu.length} documentos cargados para ${item.name}`);
     } catch (err) {
-      console.error("❌ No se pudieron cargar los documentos:", err);
+      console.error(" Error cargando documentos por menú:", err);
+      setFilteredDocs([]);
     }
   };
-
-  fetchDocuments();
-}, [setFilteredDocs]);
 
   const toggleItem = (itemId: string) => {
-    setOpenchildren(prev => ({
+    setOpenchildren((prev) => ({
       ...prev,
       [itemId]: !prev[itemId],
     }));
   };
-  const handleMenuClick = (item: MenuItem) => {
-    const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
-    setFilteredDocs(docsForMenu);
-    setActiveMenu((item.option || item.name) as MenuOption);
-  };
+
   const handleLoginSuccess = (token: string) => {
     setShowLogin(false);
     onLogout();
   };
+
+  // 🔹 Renderizado del menú lateral con documentos anidados
   const renderMenu = (children: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
-      {children.map(item => {
-        const docsForMenu = documents.filter(doc => doc.menuId === item.id.toString());
+      {children.map((item) => {
+        const docsForMenu = menuDocs[item.id] || [];
         const isOpen = openchildren[item.id] || false;
+
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${item.children ? "has-children" : ""} ${activeMenu === item.option ? "active" : ""
-                }`}
+              className={`menu-item ${
+                item.children ? "has-children" : ""
+              } ${activeMenu === item.id ? "active" : ""}`}
               onClick={() => {
-                if (item.children) {
-                  toggleItem(item.id);
-                  handleMenuClick(item);
-                } else {
-                  handleMenuClick(item);
-                }
+                toggleItem(item.id);
+                handleMenuClick(item);
               }}
             >
               {item.name}
             </div>
+
+            {/* Documentos del menú */}
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
-                {docsForMenu.map(doc => (
+                {docsForMenu.map((doc) => (
                   <li key={doc.id} className="doc-item">
                     <a href={doc.url} target="_blank" rel="noreferrer">
                       📄 {doc.name}
@@ -140,12 +148,15 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 ))}
               </ul>
             )}
+
+            {/* Submenús */}
             {isOpen && item.children && renderMenu(item.children, level + 1)}
           </li>
         );
       })}
     </ul>
   );
+
   return (
     <div className="dashboard-top-layout">
       <header className="dashboard-header">
@@ -155,30 +166,23 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         </button>
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
-            <p style={{ padding: "10px" }}>
-
-            </p>
+            <p style={{ padding: "10px" }}>Cargando menú...</p>
           ) : (
-            sections.map(section => (
+            sections.map((section) => (
               <div key={section.id} className="menu-section">
                 <h3
-                  className={`menu-section-title ${openSection === section.id ? "open" : ""}`}
+                  className={`menu-section-title ${
+                    openSection === section.id ? "open" : ""
+                  }`}
                   onClick={() => {
                     setOpenSection(openSection === section.id ? null : section.id);
-                    const docsForMenu = documents.filter(doc => doc.menuId === section.id.toString());
-                    setFilteredDocs(docsForMenu);
-                    setActiveMenu(section.name as MenuOption);
+                    handleMenuClick({ id: section.id, name: section.name } as MenuItem);
                   }}
                 >
-                  <span>{section.name}</span>
-                  {section.children && section.children.length > 0 ? (
-                    <span style={{ fontSize: '1.1em', transition: 'transform 0.3s', transform: openSection === section.id ? 'rotate(90deg)' : 'rotate(0deg)' }}></span>
-                  ) : null}
+                  {section.name}
                 </h3>
-                {openSection === section.id && section.children && section.children.length > 0 && (
-                  <div className="submenu-dropdown" style={{ position: 'absolute', top: '100%', left: 0, minWidth: '180px', background: '#fff', borderRadius: '8px', boxShadow: '0 6px 15px rgba(0,0,0,0.15)', padding: '12px 0', zIndex: 999, transition: 'opacity 0.3s', opacity: openSection === section.id ? 1 : 0 }}>
-                    {renderMenu(section.children)}
-                  </div>
+                {openSection === section.id && section.children.length > 0 && (
+                  <div className="submenu-dropdown">{renderMenu(section.children)}</div>
                 )}
               </div>
             ))
@@ -188,39 +192,28 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
           </button>
         </nav>
       </header>
+
+      {/* Contenido principal */}
       <main className="dashboard-content">
-        {activeMenu === "home" && <Home documents={documents} />}
-        {activeMenu === "documents" && <DocumentsPanel documents={documents} />}
+        {activeMenu === "home" && <Home documents={[]} />}
+        {activeMenu === "documents" && <DocumentsPanel documents={[]} />}
         {activeMenu !== "home" && activeMenu !== "documents" && (
           <div>
-            <h1 style={{
-              textAlign: 'center',
-              fontSize: '2.4rem',
-              fontWeight: 700,
-              color: '#000000ff',
-              margin: '32px 0 18px 0',
-              letterSpacing: '2px',
-              fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-              textTransform: 'uppercase',
-              textShadow: '0 2px 12px rgba(0, 0, 0, 0.18), 0 3px 0 #e9853aff',
-            }}>
-              {
-                (() => {
-                  for (const section of sections) {
-                    if (section.id === activeMenu) return section.name.toUpperCase();
-                    for (const item of section.children) {
-                      if (item.id === activeMenu) return item.name.toUpperCase();
-                      if (item.children) {
-                        for (const child of item.children) {
-                          if (child.id === activeMenu) return child.name.toUpperCase();
-                        }
-                      }
+            <h1 className="menu-title">
+              {(() => {
+                for (const section of sections) {
+                  if (section.id === activeMenu) return section.name.toUpperCase();
+                  for (const item of section.children) {
+                    if (item.id === activeMenu) return item.name.toUpperCase();
+                    for (const child of item.children || []) {
+                      if (child.id === activeMenu) return child.name.toUpperCase();
                     }
                   }
-                  return String(activeMenu).toUpperCase();
-                })()
-              }
+                }
+                return String(activeMenu).toUpperCase();
+              })()}
             </h1>
+
             <ul className="doc-list">
               {filteredDocs.length > 0 ? (
                 filteredDocs.map((doc) => {
@@ -230,6 +223,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                     FileIcon = AiOutlineFileWord;
                   if (doc.type.includes("excel") || doc.type.includes("xls"))
                     FileIcon = AiOutlineFileExcel;
+
                   return (
                     <li key={doc.id} className="doc-item">
                       <div className="doc-icon">
@@ -263,6 +257,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
           </div>
         )}
       </main>
+
       {previewDoc && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -270,11 +265,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               <h3>{previewDoc.name}</h3>
               <button onClick={() => setPreviewDoc(null)}>✖</button>
             </div>
-
             <DocumentViewer document={previewDoc} />
           </div>
         </div>
       )}
+
       {showLogin && (
         <Login
           onLoginSuccess={handleLoginSuccess}
@@ -284,4 +279,5 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     </div>
   );
 };
+
 export default DashboardUser;

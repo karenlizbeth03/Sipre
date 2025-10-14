@@ -27,7 +27,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
         const fileUrl = URL.createObjectURL(blob);
         setBlobUrl(fileUrl);
       } catch (error) {
-        console.error("❌ Error visualizando documento:", error);
+        console.error("  Error visualizando documento:", error);
       }
     };
 
