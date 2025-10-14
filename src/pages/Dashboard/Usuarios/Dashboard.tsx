@@ -39,7 +39,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   useEffect(() => {
   const fetchMenu = async () => {
     try {
-      const res = await fetch("http://192.168.2.181:3000/menus");
+      const res = await fetch("http://192.168.2.201:3000/menus");
       if (!res.ok) throw new Error("Error al cargar menú");
       const result = await res.json();
 
