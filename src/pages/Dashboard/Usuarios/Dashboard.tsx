@@ -13,6 +13,8 @@ import {
 } from "react-icons/ai";
 import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
 import Login from "../../../components/Login/Login";
+import { useNavigate } from "react-router-dom";
+
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -30,6 +32,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   setFilteredDocs,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [openchildren, setOpenchildren] = useState<Record<string, boolean>>({});
@@ -37,8 +40,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [showLogin, setShowLogin] = useState(false);
 
+
+  const API_BASE = "http://192.168.2.201:3000";
   // 🔹 Carga inicial del menú
   useEffect(() => {
+
     const fetchMenu = async () => {
       try {
         const res = await fetch("http://192.168.2.201:3000/menus");
@@ -74,6 +80,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const handleMenuClick = async (item: MenuItem) => {
     try {
       console.info(`📂 Cargando documentos del menú: ${item.name} (${item.id})`);
+      console.log("👉 URL solicitada:", `http://192.168.2.201:3000/documents/get-by-menu/${item.id}`);
 
       // evitar recargar si ya existen en cache
       if (menuDocs[item.id]) {
@@ -125,9 +132,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${
-                item.children ? "has-children" : ""
-              } ${activeMenu === item.id ? "active" : ""}`}
+              className={`menu-item ${item.children ? "has-children" : ""
+                } ${activeMenu === item.id ? "active" : ""}`}
               onClick={() => {
                 toggleItem(item.id);
                 handleMenuClick(item);
@@ -171,9 +177,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             sections.map((section) => (
               <div key={section.id} className="menu-section">
                 <h3
-                  className={`menu-section-title ${
-                    openSection === section.id ? "open" : ""
-                  }`}
+                  className={`menu-section-title ${openSection === section.id ? "open" : ""
+                    }`}
                   onClick={() => {
                     setOpenSection(openSection === section.id ? null : section.id);
                     handleMenuClick({ id: section.id, name: section.name } as MenuItem);
@@ -259,16 +264,33 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       </main>
 
       {previewDoc && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay" onClick={() => setPreviewDoc(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{previewDoc.name}</h3>
-              <button onClick={() => setPreviewDoc(null)}>✖</button>
+              <div className="modal-actions">
+                
+                <button
+                  className="close-btn"
+                  onClick={() => setPreviewDoc(null)}
+                  title="Cerrar"
+                >
+                  ✖
+                </button>
+              </div>
             </div>
-            <DocumentViewer document={previewDoc} />
+
+            <DocumentViewer
+              document={{
+                id: previewDoc.id,
+                name: previewDoc.name,
+                url: `${API_BASE}/documents/view/${previewDoc.id}`,
+              }}
+            />
           </div>
         </div>
       )}
+
 
       {showLogin && (
         <Login

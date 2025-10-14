@@ -35,6 +35,7 @@ const DocumentManager: React.FC = () => {
   const [tempFile, setTempFile] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [selectedMenu, setSelectedMenu] = useState("");
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
 
@@ -48,18 +49,48 @@ const DocumentManager: React.FC = () => {
   };
 
   // ===================== 📁 MENÚS =====================
+
+  const buildMenuTree = (menus: any[]) => {
+    const map: Record<string, any> = {};
+    menus.forEach((m) => {
+      map[m.id] = { ...m, children: [] };
+    });
+
+    const roots: any[] = [];
+
+    menus.forEach((m) => {
+      if (m.parent_menu_id) {
+        const parent = map[m.parent_menu_id];
+        if (parent) {
+          parent.children.push(map[m.id]);
+        } else {
+          // Si el parent no existe, lo tratamos como raíz
+          roots.push(map[m.id]);
+        }
+      } else {
+        roots.push(map[m.id]);
+      }
+    });
+
+    return roots;
+  };
+
   useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const res = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
-        if (res.status === 401) throw new Error("No autorizado");
-        const data = await res.json();
-        setSections(data.data || []);
-      } catch (err) {
-        console.error(" Error cargando menús:", err);
+
+        const response = await fetch(`${API_BASE}/menus`, {
+          headers: authHeaders(),
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.message || "Error al cargar menús")
+        setSections(buildMenuTree(data.data || []));
+      } catch (error) {
+        console.error("Error cargando menús:", error)
+        setStatusMessage(" Error al cargar menús. Verifique su conexión o sesión.")
       }
-    };
-    fetchMenus();
+    }
+    fetchMenus()
   }, [setSections]);
 
   // ===================== 📄 DOCUMENTOS =====================
@@ -102,6 +133,7 @@ const DocumentManager: React.FC = () => {
       formData.append("file", file);
       formData.append("name", file.name);
       formData.append("menu_id", menuId);
+
       if (userId) formData.append("user_id", userId);
 
       try {
@@ -152,44 +184,87 @@ const DocumentManager: React.FC = () => {
     setTempMenuId(doc.menuId || "");
     setTempFile(null);
   };
+  const renderMenuOptions = (menus: any[], prefix = "") =>
+    menus.map((m: any) => (
+      <React.Fragment key={m.id}>
+        <option value={m.id}>{prefix + m.name}</option>
+        {m.children && renderMenuOptions(m.children, prefix + "└─ ")}
+      </React.Fragment>
+    ));
 
- const saveModalChanges = async () => {
-  if (!modalDoc) return;
 
-  const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("user_id");
-  const formData = new FormData();
 
-  formData.append("name", tempName);
-  formData.append("menu_id", tempMenuId);
-  if (userId) formData.append("user_id", userId);
-  if (tempFile) formData.append("file", tempFile);
+  const saveModalChanges = async () => {
+    if (!modalDoc) return;
 
-  try {
-    const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
+    const formData = new FormData();
 
-    if (!res.ok) {
-      const text = await res.text(); // leer texto por si es error HTML
-      throw new Error(`Error ${res.status}: ${text}`);
+    formData.append("name", tempName);
+    formData.append("menu_id", tempMenuId);
+    if (userId) formData.append("user_id", userId);
+    if (tempFile) formData.append("file", tempFile);
+
+    try {
+      const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const text = await res.text(); // leer texto por si es error HTML
+        throw new Error(`Error ${res.status}: ${text}`);
+      }
+
+      const data = await res.json();
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === data.data.id ? data.data : d))
+      );
+    } catch (err) {
+      console.error("Error actualizando documento:", err);
+      alert("Error actualizando documento. Revisa consola para más detalles.");
     }
 
-    const data = await res.json();
-    setDocuments((prev) =>
-      prev.map((d) => (d.id === data.data.id ? data.data : d))
-    );
-  } catch (err) {
-    console.error("Error actualizando documento:", err);
-    alert("Error actualizando documento. Revisa consola para más detalles.");
-  }
+    setModalType(null);
+    setModalDoc(null);
+  };
+  const renderOption = (menu: any, level = 0): React.JSX.Element[] => {
+    const prefix = "└─ ".repeat(level); // indentación según nivel
+    const options: React.JSX.Element[] = [
+      <option key={menu.id} value={menu.id}>
+        {prefix + menu.name}
+      </option>,
+    ];
 
-  setModalType(null);
-  setModalDoc(null);
+    if (menu.children?.length) {
+      menu.children.forEach((child: any) => {
+        options.push(...renderOption(child, level + 1));
+      });
+    }
+
+    return options;
+  };
+// Función recursiva para renderizar submenus
+const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
+  return menus.flatMap((menu) => {
+    const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
+    const option = (
+      <option key={menu.id} value={menu.id}>
+        {prefix + menu.name}
+      </option>
+    );
+
+    if (menu.children?.length) {
+      return [option, ...renderOptions(menu.children, level + 1)];
+    }
+
+    return [option];
+  });
 };
 
+ 
 
   const handleView = (doc: Document) => setSelectedDocument(doc);
 
@@ -287,24 +362,17 @@ const DocumentManager: React.FC = () => {
                   onChange={(e) => setTempName(e.target.value)}
                   className="modal-input"
                 />
-                <label>Sección:</label>
-                <select
-                  value={tempMenuId}
-                  onChange={(e) => setTempMenuId(e.target.value)}
-                  className="modal-input"
-                >
-                  <option value="">-- Seleccionar sección --</option>
-                  {sections.map((sec) => (
-                    <React.Fragment key={sec.id}>
-                      <option value={sec.id}>{sec.name}</option>
-                      {sec.children?.map((child) => (
-                        <option key={child.id} value={child.id}>
-                          └─ {child.name}
-                        </option>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </select>
+                <h3>Seleccionar sección</h3>
+              <select
+                value={selectedMenu}
+                onChange={(e) => setSelectedMenu(e.target.value)}
+              >
+                <option value="">- Seleccionar sección -</option>
+                {renderOptions(sections)}
+              </select>
+
+
+
 
                 <label>Reemplazar archivo:</label>
                 <input

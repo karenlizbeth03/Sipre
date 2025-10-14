@@ -3,11 +3,11 @@ import "./DocumentUpload.css";
 
 export interface DocumentUploadProps {
   onUpload: (files: FileList, menuId: string) => void;
-  sections: { id: string; name: string; children?: any[] }[]; // para el modal
+  sections: any[]; // incluye submenus
 }
 
 export interface DocumentUploadHandle {
-  triggerUpload: () => void; // ya no necesitamos menuId externo
+  triggerUpload: () => void;
 }
 
 const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
@@ -17,9 +17,7 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
     const [selectedMenu, setSelectedMenu] = useState("");
 
     useImperativeHandle(ref, () => ({
-      triggerUpload: () => {
-        setShowMenuModal(true); 
-      },
+      triggerUpload: () => setShowMenuModal(true),
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,15 +28,34 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
       }
     };
 
+    // Función recursiva para renderizar submenus
+    const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
+      return menus.flatMap((menu) => {
+        const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
+        const option = (
+          <option key={menu.id} value={menu.id}>
+            {prefix + menu.name}
+          </option>
+        );
+
+        // Leer la propiedad correcta: submenus
+        if (menu.submenus?.length) {
+          return [option, ...renderOptions(menu.submenus, level + 1)];
+        }
+
+        return [option];
+      });
+    };
+
+
     const handleMenuSelect = () => {
       if (!selectedMenu) return;
       setShowMenuModal(false);
-      fileInputRef.current?.click(); 
+      fileInputRef.current?.click();
     };
 
     return (
       <>
-        {/* Modal de selección de menú */}
         {showMenuModal && (
           <div className="modal-overlay" onClick={() => setShowMenuModal(false)}>
             <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -47,18 +64,10 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
                 value={selectedMenu}
                 onChange={(e) => setSelectedMenu(e.target.value)}
               >
-                <option value="">-- Seleccionar sección --</option>
-                {sections.map((sec) => (
-                  <React.Fragment key={sec.id}>
-                    <option value={sec.id}>{sec.name}</option>
-                    {sec.children?.map((child) => (
-                      <option key={child.id} value={child.id}>
-                        └─ {child.name}
-                      </option>
-                    ))}
-                  </React.Fragment>
-                ))}
+                <option value="">- Seleccionar sección -</option>
+                {renderOptions(sections)}
               </select>
+
 
               <div className="modal-actions">
                 <button className="cancel-btn" onClick={() => setShowMenuModal(false)}>
@@ -76,7 +85,6 @@ const DocumentUpload = forwardRef<DocumentUploadHandle, DocumentUploadProps>(
           </div>
         )}
 
-        {/* Input de archivos oculto */}
         <input
           ref={fileInputRef}
           type="file"

@@ -85,17 +85,7 @@ const DocumentListPage: React.FC<Props> = ({
               <tr key={doc.id}>
                 <td>{doc.name}</td>
                 <td>{doc.type}</td>
-                {/* <td
-                  title={doc.path}
-                  style={{
-                    maxWidth: "250px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {doc.path}
-                </td> */}
+                
                 <td>{getMenuName(doc.menuId)}</td>
                 <td>{new Date(doc.updatedAt).toLocaleString()}</td>
                 {/* <td>{doc.user_edit?.name || "—"}</td> */}

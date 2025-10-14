@@ -1,47 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import "./DocumentViewer.css";
 
-interface DocumentViewerProps {
-  document: {
-    id: string;
-    name: string;
-    url: string;
-  };
+interface Document {
+  id: string;
+  name: string;
+  url: string;
 }
 
-const DocumentViewer: React.FC<DocumentViewerProps> = ({ document }) => {
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+interface Props {
+  document: Document;
+  onClose?: () => void; // opcional, para cerrar modal
+}
 
-  useEffect(() => {
-    const fetchDocument = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const res = await fetch(document.url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Error al cargar el documento");
-
-        const blob = await res.blob();
-        const fileUrl = URL.createObjectURL(blob);
-        setBlobUrl(fileUrl);
-      } catch (error) {
-        console.error("  Error visualizando documento:", error);
-      }
-    };
-
-    fetchDocument();
-  }, [document.url]);
-
-  if (!blobUrl) return <p>Cargando documento...</p>;
+const DocumentViewer: React.FC<Props> = ({ document, onClose }) => {
+  if (!document) return <p>No hay documento seleccionado.</p>;
 
   return (
-    <iframe
-      src={blobUrl}
-      title={document.name}
-      style={{ width: "100%", height: "80vh", border: "none" }}
-    />
+    <div className="document-viewer">
+      <div className="viewer-header">
+        <h3>{document.name}</h3>
+        {onClose && (
+          <button className="close-btn" onClick={onClose}>
+            ✖
+          </button>
+        )}
+      </div>
+      <div className="viewer-content">
+        <iframe
+          src={document.url}
+          title={document.name}
+          className="pdf-frame"
+          width="100%"
+          height="600px" // tamaño fijo para que no sea fullscreen
+          style={{ border: "none" }}
+        />
+      </div>
+    </div>
   );
 };
 
