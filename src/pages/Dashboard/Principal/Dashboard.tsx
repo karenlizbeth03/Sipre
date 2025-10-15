@@ -69,9 +69,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   )
 
   const handleLogoutClick = async () => {
-    await logout();
-    onLogout();
-  };
+  await logout();
+  localStorage.removeItem('token'); 
+  onLogout();
+};
+
 
   return (
     <div className="dashboard-top-layout">
