@@ -4,7 +4,7 @@ import { MenuItemForm } from "../MenuItemForm/MenuItemForm";
 import { useMenu } from "../../hooks/useMenu";
 import "./MenuBuilder.css";
 
-const API_URL = "http://192.168.2.201:3000/menus";
+const API_URL = "http://192.168.2.184:3000/menus";
 
 // Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {
