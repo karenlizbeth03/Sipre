@@ -6,6 +6,8 @@ interface Props {
   onView: (doc: Document) => void;
   onDelete: (id: string) => void;
   onDownload: (doc: Document) => void;
+  onSectionChange: (docId: string, sectionId: string) => void;
+
 }
 
 const DocumentList: React.FC<Props> = ({ documents, onView, onDelete, onDownload }) => {

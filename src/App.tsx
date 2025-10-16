@@ -3,7 +3,7 @@ import Dashboard from './pages/Dashboard/Principal/Dashboard';
 import DashboardUser from './pages/Dashboard/Usuarios/Dashboard';
 import DocumentManager from './pages/GestorDocumental/DocumentManager/DocumentManager';
 import MenuBuilder from './components/MenuBuilder/MenuBuilder';
-import Login from './components/Login/Login'; // 👈 asegúrate de importar tu Login
+import Login from './components/Login/Login';
 import { useMenu } from './hooks/useMenu';
 import './App.css';
 import type { Document } from './types';
@@ -18,29 +18,31 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const { sections } = useMenu();
 
-  // ✅ Al cargar la app, verificamos si ya hay token guardado
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setUserRole('admin');
-    } else {
-      setUserRole('user');
-    }
-  }, []);
 
-  // ✅ Cuando el admin inicia sesión
-  const handleLoginSuccess = (token: string) => {
-    localStorage.setItem('token', token);
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
     setUserRole('admin');
-    setShowLogin(false);
-  };
-
-  // ✅ Cuando el admin cierra sesión
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  } else {
     setUserRole('user');
-    setActiveMenu('home');
-  };
+  }
+}, []);
+
+const handleLoginSuccess = (token: string) => {
+  localStorage.setItem("token", token);
+  setShowLogin(false);
+  setTimeout(() => {
+    setUserRole("admin");
+  }, 0);
+};
+
+
+
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  setUserRole('user');
+  setActiveMenu('home');
+};
 
   const renderAdminContent = () => {
     switch (activeMenu) {
@@ -48,7 +50,7 @@ function App() {
         return <DocumentManager />;
       case 'nuevo_menu':
         return <MenuBuilder />;
-      case 'home':
+      default:
         return (
           <div>
             <img
@@ -63,22 +65,16 @@ function App() {
             />
           </div>
         );
-      default:
-        return <div style={{ padding: '20px' }}>Página: {activeMenu}</div>;
     }
   };
-
   return (
     <div className="app">
-      {/* Mostrar login si el admin quiere loguearse */}
-      {showLogin && (
+      {showLogin ? (
         <Login
           onLoginSuccess={handleLoginSuccess}
           onCancel={() => setShowLogin(false)}
         />
-      )}
-
-      {userRole === 'admin' ? (
+      ) : userRole === 'admin' ? (
         <Dashboard
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
@@ -90,13 +86,14 @@ function App() {
         <DashboardUser
           activeMenu={activeMenu}
           setActiveMenu={setActiveMenu}
-          onLogout={() => setShowLogin(true)} 
+          onLogout={() => setShowLogin(true)}
           filteredDocs={filteredDocs}
           setFilteredDocs={setFilteredDocs}
         />
       )}
     </div>
   );
+
 }
 
 export default App;

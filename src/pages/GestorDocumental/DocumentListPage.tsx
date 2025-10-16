@@ -14,7 +14,6 @@ interface Props {
   documents: Document[];
   sections: MenuSection[];
   onDelete: (id: string) => void;
-  onDownload: (doc: Document) => void;
   onEdit: (doc: Document) => void;
   onView: (doc: Document) => void;
   onSectionChange: (docId: string, sectionId: string) => void;
@@ -24,30 +23,61 @@ const DocumentListPage: React.FC<Props> = ({
   documents,
   sections,
   onDelete,
-  onDownload,
   onEdit,
   onView,
   onSectionChange,
 }) => {
   const [search, setSearch] = useState("");
+  const API_BASE = "http://192.168.2.225:3000";
 
   const filteredDocs = documents.filter((doc) =>
     doc.name?.toLowerCase().includes(search.toLowerCase())
   );
-  const getMenuName = (menuId?: string): string => {
-  if (!menuId) return "—";
 
-  const findMenu = (menus: MenuSection[]): string | undefined => {
-    for (const m of menus) {
-      if (m.id === menuId) return m.name;
-      const found = m.children && findMenu(m.children);
-      if (found) return found;
-    }
+  /**
+   * 🔹 Buscar el nombre del menú (recursivamente) según el ID.
+   * Funciona tanto para menús, submenús y niveles más profundos.
+   */
+  const getMenuName = (menuId?: string): string => {
+    if (!menuId) return "—";
+
+    const findMenu = (menus: MenuSection[]): string | undefined => {
+      for (const menu of menus) {
+        if (menu.id === menuId) return menu.name;
+
+        // 🔹 Compatibilidad: buscar en submenus o children
+        const children = (menu.submenus || (menu as any).children) ?? [];
+        if (children.length > 0) {
+          const found = findMenu(children);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    };
+
+    return findMenu(sections) || menuId;
   };
 
-  return findMenu(sections) || menuId; // Si no lo encuentra, muestra el ID
-};
+  // 🔹 Descarga directa usando el endpoint existente /documents/view/{id}
+  const handleDownload = async (doc: Document) => {
+    try {
+      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`);
+      if (!response.ok) throw new Error("Error al descargar el documento");
 
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = doc.name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error al descargar el archivo:", err);
+      alert("No se pudo descargar el documento");
+    }
+  };
 
   return (
     <div className="document-list-page">
@@ -73,10 +103,8 @@ const DocumentListPage: React.FC<Props> = ({
             <tr>
               <th>Nombre</th>
               <th>Tipo</th>
-              {/* <th>Ruta</th> */}
-              <th>Menú ID</th>
+              <th>Menú</th>
               <th>Última modificación</th>
-              {/* <th>Modificado por</th> */}
               <th>Acciones</th>
             </tr>
           </thead>
@@ -85,20 +113,27 @@ const DocumentListPage: React.FC<Props> = ({
               <tr key={doc.id}>
                 <td>{doc.name}</td>
                 <td>{doc.type}</td>
-                
+
+                {/* ✅ Muestra el nombre correcto (no el ID) */}
                 <td>{getMenuName(doc.menuId)}</td>
+
                 <td>{new Date(doc.updatedAt).toLocaleString()}</td>
-                {/* <td>{doc.user_edit?.name || "—"}</td> */}
                 <td>
-                  <button onClick={() => onView(doc)} title="Ver">
-                    <AiOutlineEye />
-                  </button>
+                  {/* 👁️ Solo mostrar si es PDF */}
+                  {doc.type.includes("pdf") && (
+                    <button onClick={() => onView(doc)} title="Ver">
+                      <AiOutlineEye />
+                    </button>
+                  )}
+
                   <button onClick={() => onEdit(doc)} title="Editar">
                     <AiOutlineEdit />
                   </button>
-                  <button onClick={() => onDownload(doc)} title="Descargar">
+
+                  <button onClick={() => handleDownload(doc)} title="Descargar">
                     <AiOutlineDownload />
                   </button>
+
                   <button onClick={() => onDelete(doc.id)} title="Eliminar">
                     <AiOutlineDelete />
                   </button>
@@ -107,7 +142,6 @@ const DocumentListPage: React.FC<Props> = ({
             ))}
           </tbody>
         </table>
-
       )}
     </div>
   );

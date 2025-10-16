@@ -31,7 +31,7 @@ const DocumentViewer: React.FC<Props> = ({ document, onClose }) => {
           title={document.name}
           className="pdf-frame"
           width="100%"
-          height="600px" // tamaño fijo para que no sea fullscreen
+          height="600px" 
           style={{ border: "none" }}
         />
       </div>

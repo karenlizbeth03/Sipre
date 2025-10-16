@@ -41,13 +41,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [showLogin, setShowLogin] = useState(false);
 
 
-  const API_BASE = "http://192.168.2.184:3000";
+  const API_BASE = "http://192.168.2.225:3000";
   // 🔹 Carga inicial del menú
   useEffect(() => {
 
     const fetchMenu = async () => {
       try {
-        const res = await fetch("http://192.168.2.184:3000/menus");
+        const res = await fetch("http://192.168.2.225:3000/menus");
         if (!res.ok) throw new Error("Error al cargar menú");
         const result = await res.json();
 
@@ -67,7 +67,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         }));
 
         setSections(normalizedSections);
-        console.info("📁 Menú cargado:", normalizedSections);
       } catch (err) {
         console.error(" No se pudo cargar el menú:", err);
       }
@@ -79,8 +78,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   // 🔹 Cargar documentos de un menú específico
   const handleMenuClick = async (item: MenuItem) => {
     try {
-      console.info(`📂 Cargando documentos del menú: ${item.name} (${item.id})`);
-      console.log("👉 URL solicitada:", `http://192.168.2.184:3000/documents/get-by-menu/${item.id}`);
+      console.info(`Cargando documentos del menú: ${item.name} (${item.id})`);
+      console.log("URL solicitada:", `http://192.168.2.225:3000/documents/get-by-menu/${item.id}`);
 
       // evitar recargar si ya existen en cache
       if (menuDocs[item.id]) {
@@ -90,7 +89,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       }
 
       const res = await fetch(
-        `http://192.168.2.184:3000/documents/get-by-menu/${item.id}`
+        `http://192.168.2.225:3000/documents/get-by-menu/${item.id}`
       );
       if (!res.ok) throw new Error("Error al cargar documentos por menú");
 
@@ -103,7 +102,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       setFilteredDocs(docsForMenu);
       setActiveMenu(item.id as unknown as MenuOption);
 
-      console.info(`✅ ${docsForMenu.length} documentos cargados para ${item.name}`);
+      console.info(` ${docsForMenu.length} documentos cargados para ${item.name}`);
     } catch (err) {
       console.error(" Error cargando documentos por menú:", err);
       setFilteredDocs([]);
@@ -142,7 +141,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               {item.name}
             </div>
 
-            {/* Documentos del menú */}
+
+            {/* Documentos del menú 
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
                 {docsForMenu.map((doc) => (
@@ -153,7 +153,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   </li>
                 ))}
               </ul>
-            )}
+            )} */}
+
 
             {/* Submenús */}
             {isOpen && item.children && renderMenu(item.children, level + 1)}
@@ -192,9 +193,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </div>
             ))
           )}
-          <button className="login-btn" onClick={() => setShowLogin(true)}>
+          <button className="login-btn" onClick={onLogout}>
             <center>Iniciar Sesión</center>
           </button>
+
         </nav>
       </header>
 
@@ -229,28 +231,57 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   if (doc.type.includes("excel") || doc.type.includes("xls"))
                     FileIcon = AiOutlineFileExcel;
 
+                  // 🔹 URL actual del backend
+                  const viewUrl = `${API_BASE}/documents/view/${doc.id}`;
+
+                  // 🔹 Función de descarga forzada
+                  const handleDownload = async () => {
+                    try {
+                      const response = await fetch(viewUrl);
+                      if (!response.ok) throw new Error("Error al descargar el documento");
+
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = doc.name; // nombre del archivo
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                      console.error("Error al descargar el archivo:", err);
+                      alert("No se pudo descargar el documento");
+                    }
+                  };
+
                   return (
                     <li key={doc.id} className="doc-item">
                       <div className="doc-icon">
                         <FileIcon size={28} />
                       </div>
+
                       <span className="doc-name">{doc.name}</span>
+
                       <div className="doc-actions">
+                        
+                        {doc.type.includes("pdf") && (
+                          <button
+                            className="icon-btn"
+                            onClick={() => setPreviewDoc(doc)}
+                            title="Visualizar PDF"
+                          >
+                            <AiOutlineEye />
+                          </button>
+                        )}
+
                         <button
                           className="icon-btn"
-                          onClick={() => setPreviewDoc(doc)}
-                          title="Previsualizar"
-                        >
-                          <AiOutlineEye />
-                        </button>
-                        <a
-                          href={doc.url}
-                          download={doc.name}
+                          onClick={handleDownload}
                           title="Descargar"
-                          className="icon-btn"
                         >
                           <AiOutlineDownload />
-                        </a>
+                        </button>
                       </div>
                     </li>
                   );
@@ -259,6 +290,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 <p>No hay documentos en esta sección.</p>
               )}
             </ul>
+
           </div>
         )}
       </main>
@@ -269,7 +301,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
             <div className="modal-header">
               <h3>{previewDoc.name}</h3>
               <div className="modal-actions">
-                
+
                 <button
                   className="close-btn"
                   onClick={() => setPreviewDoc(null)}
@@ -292,12 +324,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       )}
 
 
-      {showLogin && (
-        <Login
-          onLoginSuccess={handleLoginSuccess}
-          onCancel={() => setShowLogin(false)}
-        />
-      )}
+
     </div>
   );
 };

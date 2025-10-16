@@ -22,7 +22,7 @@ export interface Document {
   };
 }
 
-const API_BASE = "http://192.168.2.184:3000";
+const API_BASE = "http://192.168.2.225:3000";
 
 const DocumentManager: React.FC = () => {
   const { sections, setSections } = useMenu();
@@ -304,8 +304,7 @@ const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
         documents={documents}
         sections={sections}
         onDelete={handleDelete}
-        onDownload={(doc) => window.open(`${API_BASE}/uploads/${doc.path}`, "_blank")}
-        onEdit={handleEdit}
+         onEdit={handleEdit}
         onView={handleView}
         onSectionChange={handleSectionChange}
       />

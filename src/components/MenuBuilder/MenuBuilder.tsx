@@ -1,25 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { MenuItem, MenuSection } from "../../types";
 import { MenuItemForm } from "../MenuItemForm/MenuItemForm";
 import { useMenu } from "../../hooks/useMenu";
 import "./MenuBuilder.css";
 
-const API_URL = "http://192.168.2.184:3000/menus";
+const API_URL = "http://192.168.2.225:3000/menus";
 
 // Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {
   return menus.map((menu) => ({
     id: menu.id,
     name: menu.name,
+    submenus: menu.submenus ? normalizeMenuTree(menu.submenus) : [], // ✅ nuevo
     children: menu.submenus ? normalizeMenuTree(menu.submenus) : [],
-    items: menu.submenus ? menu.submenus.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      parent_menu_id: item.parent_menu_id || null,
-      children: item.submenus ? normalizeMenuTree(item.submenus) : [],
-    })) : [],
+    items: menu.submenus
+      ? menu.submenus.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        parent_menu_id: item.parent_menu_id || null,
+        children: item.submenus ? normalizeMenuTree(item.submenus) : [],
+        submenus: item.submenus ? normalizeMenuTree(item.submenus) : [], // ✅ nuevo
+      }))
+      : [],
   }));
 };
+
 
 const MenuBuilder: React.FC = () => {
   const [sections, setSections] = useState<MenuSection[]>([]);
@@ -29,22 +34,32 @@ const MenuBuilder: React.FC = () => {
   const [newSectionname, setNewSectionname] = useState("");
   const [openSections, setOpenSections] = useState<string[]>([]);
 
-  // Fetch inicial
-  useEffect(() => {
-    const fetchMenus = async () => {
-      try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("Error al cargar menús");
+  // 🧩 Estados para los modales
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<MenuSection | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isItemDelete, setIsItemDelete] = useState(false);
 
-        const result = await res.json();
-        const normalized = normalizeMenuTree(result.data || []);
-        setSections(normalized);
-      } catch (err) {
-        console.error(" Error cargando menús:", err);
-      }
-    };
-    fetchMenus();
+
+  // Fetch inicial
+  const fetchMenus = useCallback(async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("Error al cargar menús");
+      const result = await res.json();
+      const normalized = normalizeMenuTree(result.data || []);
+      setSections(normalized);
+    } catch (err) {
+      console.error("Error cargando menús:", err);
+    }
   }, []);
+
+  // ✅ 2. Llamar una vez al inicio
+  useEffect(() => {
+    fetchMenus();
+  }, [fetchMenus]);
 
   // Crear sección raíz
   const handleAddSection = async () => {
@@ -71,52 +86,27 @@ const MenuBuilder: React.FC = () => {
       };
       setSections((prev) => [...prev, newSection]);
       setNewSectionname("");
+      await fetchMenus();
     } catch (err) {
-      console.error(" Error creando sección:", err);
+      console.error("Error creando sección:", err);
     }
   };
 
   // Crear submenú o item
   const handleAddMenuItem = async (
-    sectionId: string,
+    _sectionId: string,
     parentId: string | null,
     itemData: Omit<MenuItem, "id">
   ) => {
     if (!itemData.name.trim()) return;
-
     try {
       const token = localStorage.getItem("token") || "";
 
-      // Buscar nivel
-      const findMenuLevel = (items: MenuItem[], id: string, level = 0): number | null => {
-        for (const item of items) {
-          if (item.id === id) return level;
-          if (item.children?.length) {
-            const found = findMenuLevel(item.children, id, level + 1);
-            if (found !== null) return found;
-          }
-        }
-        return null;
-      };
-
       const payload: any = {
         name: itemData.name.trim(),
-        parent_menu_id: parentId,
+        parent_menu_id: parentId || null,
         menu_level: "0",
       };
-
-      if (parentId) {
-        const section = sections.find((s) => s.id === sectionId);
-        if (section) {
-          const parentLevel = findMenuLevel(section.items ?? [], parentId);
-          payload.menu_level = parentLevel !== null ? String(parentLevel + 1) : "1";
-        }
-      } else {
-        payload.parent_menu_id = null;
-        payload.menu_level = "0";
-      }
-
-      console.log("📤 Payload que se enviará:", payload);
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -128,23 +118,12 @@ const MenuBuilder: React.FC = () => {
       });
 
       const result = await res.json();
-      if (!res.ok) {
-        console.error(" Respuesta del backend:", result);
-        throw new Error(result.message || "Error al crear menú/submenú");
-      }
+      if (!res.ok) throw new Error(result.message || "Error al crear menú/submenú");
 
-      const newItem: MenuItem = {
-        id: result.data.id,
-        name: result.data.name,
-        parent_menu_id: payload.parent_menu_id,
-        children: [],
-      };
-
-      addMenuItem(sectionId, newItem, parentId || undefined);
       setActiveItem(null);
-      console.log("✅ Menú/submenú creado con éxito:", newItem);
+      await fetchMenus();
     } catch (err) {
-      console.error(" Error creando menú/submenú:", err);
+      console.error("Error creando menú/submenú:", err);
     }
   };
 
@@ -161,18 +140,26 @@ const MenuBuilder: React.FC = () => {
         body: JSON.stringify({ name: itemData.name }),
       });
       if (!res.ok) throw new Error("Error al actualizar menú");
-      updateMenuItem(sectionId, itemId, itemData);
       setEditItemId(null);
+      await fetchMenus(); // ✅ Refresca automáticamente
     } catch (err) {
-      console.error(" Error actualizando menú:", err);
+      console.error("Error actualizando menú:", err);
     }
   };
 
-  // Eliminar sección
-  const handleRemoveSection = async (sectionId: string) => {
+  // 🧩 Mostrar confirmación antes de eliminar
+  const handleRemoveSection = (sectionId: string) => {
+    const section = sections.find((s) => s.id === sectionId) || null;
+    setSelectedSection(section);
+    setShowConfirmModal(true);
+  };
+
+  // 🧩 Confirmar eliminación
+  const confirmRemoveSection = async () => {
+    if (!selectedSection) return;
     try {
       const token = localStorage.getItem("token") || "";
-      const res = await fetch(`${API_URL}/${sectionId}`, {
+      const res = await fetch(`${API_URL}/${selectedSection.id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -182,10 +169,21 @@ const MenuBuilder: React.FC = () => {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Error al eliminar sección");
 
-      setSections((prev) => prev.filter((s) => s.id !== sectionId));
-      removeSection(sectionId);
-    } catch (err) {
-      console.error(" Error eliminando sección:", err);
+      setSections((prev) => prev.filter((s) => s.id !== selectedSection.id));
+      removeSection(selectedSection.id);
+      setShowConfirmModal(false);
+      setSelectedSection(null);
+      await fetchMenus();
+    } catch (err: any) {
+      console.error("Error eliminando sección:", err);
+      setErrorMessage(err.message);
+
+      if (err.message.includes("documentos") || err.message.includes("tiene")) {
+        setShowErrorModal(true);
+      }
+
+      setShowConfirmModal(false);
+      setSelectedSection(null);
     }
   };
 
@@ -204,8 +202,9 @@ const MenuBuilder: React.FC = () => {
       if (!res.ok) throw new Error(result.message || "Error al eliminar menú/submenú");
 
       removeMenuItem(sectionId, itemId);
+      await fetchMenus();
     } catch (err) {
-      console.error(" Error eliminando item:", err);
+      console.error("Error eliminando item:", err);
     }
   };
 
@@ -217,7 +216,7 @@ const MenuBuilder: React.FC = () => {
     );
   };
 
-  // Render recursivo de items
+  // Render recursivo
   const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
     <ul
       className="menu-list"
@@ -225,7 +224,7 @@ const MenuBuilder: React.FC = () => {
         marginLeft: `${level * 20}px`,
         maxHeight: openSections.includes(sectionId) ? "1000px" : "0",
         overflow: "hidden",
-        transition: "max-height 0.4s cubic-bezier(.4,0,.2,1)",
+        transition: "max-height 0.4s ease",
       }}
     >
       {items.map((item) => (
@@ -306,7 +305,6 @@ const MenuBuilder: React.FC = () => {
           {openSections.includes(section.id) &&
             renderMenuItems(section.items || [], section.id)}
 
-          {/* Agregar item raíz */}
           {activeItem === section.id && (
             <MenuItemForm
               key={`add-root-${section.id}`}
@@ -321,6 +319,43 @@ const MenuBuilder: React.FC = () => {
           )}
         </div>
       ))}
+
+      {/* 🟠 Modal Confirmación */}
+      {showConfirmModal && (
+        <div className="menu-modal-overlay">
+          <div className="menu-modal-content">
+            <h3>Confirmar eliminación</h3>
+            <p>
+              ¿Seguro que deseas eliminar la sección{" "}
+              <strong>{selectedSection?.name}</strong>?
+            </p>
+            <div className="modal-actions">
+              <button className="btn cancel" onClick={() => setShowConfirmModal(false)}>
+                Cancelar
+              </button>
+              <button className="btn delete" onClick={confirmRemoveSection}>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔴 Modal de error */}
+      {showErrorModal && (
+        <div className="menu-modal-overlay">
+          <div className="menu-modal-content">
+            <h3>No se puede eliminar</h3>
+            <p>{errorMessage || "Esta sección tiene documentos cargados."}</p>
+            <div className="modal-actions">
+              <button className="btn ok" onClick={() => setShowErrorModal(false)}>
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

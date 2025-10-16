@@ -239,3 +239,45 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+
+
+.menu-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 12000; /* más alto que otros modales */
+  backdrop-filter: blur(2px);
+}
+
+.menu-modal-content {
+  background: #fff;
+  padding: 28px;
+  border-radius: 16px;
+  width: 420px;
+  height: auto;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.25s ease;
+}
+
+.menu-modal-content h3 {
+  color: #f1b43a;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.menu-modal-content p {
+  color: #333;
+  font-size: 1rem;
+  margin: 10px 0 20px;
+  font-weight: 500;
+}
+

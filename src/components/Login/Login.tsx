@@ -12,35 +12,37 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // 👈 nuevo estado
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // 👈 evita doble ejecución
+    setIsSubmitting(true);
     setError('');
 
     try {
-      const res = await fetch('http://192.168.2.184:3000/auth/login', {
+      const res = await fetch('http://192.168.2.225:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        const token = data.data; 
-        if (!token) throw new Error('Token no recibido del servidor');
-
-        localStorage.setItem('token', token); 
-        onLoginSuccess(token); 
+  const token = data.data;
+  if (!token) throw new Error('Token no recibido del servidor');
+  onLoginSuccess(token);
       } else {
         setError(data.message || 'Credenciales inválidas');
       }
     } catch (err: any) {
-      console.error('Error en login:', err);
       setError(err.message || 'Error de conexión con el servidor');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="login-overlay">

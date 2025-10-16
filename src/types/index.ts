@@ -12,11 +12,14 @@ export interface MenuItem {
 }
 
 export interface MenuSection {
+  
   id: string;
   name: string;
   children: MenuSection[];
   items?: MenuItem[];
+  submenus?: MenuSection[];
 }
+
 
 export interface Document {
   id: string;
