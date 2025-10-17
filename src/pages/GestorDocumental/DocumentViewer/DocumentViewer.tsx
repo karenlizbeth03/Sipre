@@ -9,7 +9,7 @@ interface Document {
 
 interface Props {
   document: Document;
-  onClose?: () => void; // opcional, para cerrar modal
+  onClose?: () => void; 
 }
 
 const DocumentViewer: React.FC<Props> = ({ document, onClose }) => {
