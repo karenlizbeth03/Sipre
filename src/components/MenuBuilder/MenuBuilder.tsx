@@ -3,8 +3,10 @@ import type { MenuItem, MenuSection } from "../../types";
 import { MenuItemForm } from "../MenuItemForm/MenuItemForm";
 import { useMenu } from "../../hooks/useMenu";
 import "./MenuBuilder.css";
+import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 
-const API_URL = "http://192.168.2.225:3000/menus";
+
+const API_URL = "http://192.168.2.190:3000/menus";
 
 // Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {
@@ -39,8 +41,11 @@ const MenuBuilder: React.FC = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedSection, setSelectedSection] = useState<MenuSection | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isItemDelete, setIsItemDelete] = useState(false);
+  // 🧩 Modal para eliminar submenú
+  const [showConfirmItemModal, setShowConfirmItemModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ sectionId: string; item: MenuItem } | null>(null);
 
 
   // Fetch inicial
@@ -127,25 +132,44 @@ const MenuBuilder: React.FC = () => {
     }
   };
 
-  // Actualizar menú
+  // ✅ Actualizar menú o submenú
   const handleUpdateMenuItem = async (
-    sectionId: string,
+    _sectionId: string,
     itemId: string,
-    itemData: Omit<MenuItem, "id">
+    itemData: Omit<MenuItem, "id" | "parent_menu_id" | "menu_level">,
+    parentMenuId: string | null = null, // nuevo parámetro
+    menuLevel: string | null = "0" // nuevo parámetro
   ) => {
     try {
-      const res = await fetch(`${API_URL}/${itemId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: itemData.name }),
+      const token = localStorage.getItem("token");
+      console.log("Token guardado:", token);
+      console.log("Actualizando item:", { itemId, parentMenuId, menuLevel });
+
+      const payload: any = {
+        name: itemData.name,
+        parent_menu_id: parentMenuId,
+        menu_level: menuLevel,
+      };
+
+      const res = await fetch(`${API_URL}/${encodeURIComponent(itemId)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Error al actualizar menú");
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al actualizar menú");
+
       setEditItemId(null);
-      await fetchMenus(); // ✅ Refresca automáticamente
+      await fetchMenus(); // refresca lista automáticamente
     } catch (err) {
       console.error("Error actualizando menú:", err);
     }
   };
+
 
   // 🧩 Mostrar confirmación antes de eliminar
   const handleRemoveSection = (sectionId: string) => {
@@ -187,6 +211,8 @@ const MenuBuilder: React.FC = () => {
     }
   };
 
+
+
   // Eliminar item
   const handleRemoveItem = async (sectionId: string, itemId: string) => {
     try {
@@ -215,6 +241,38 @@ const MenuBuilder: React.FC = () => {
         : [...prev, sectionId]
     );
   };
+  // 🧩 Confirmar eliminación de submenú
+  const confirmRemoveItem = async () => {
+    if (!itemToDelete) return;
+    const { sectionId, item } = itemToDelete;
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`${API_URL}/${item.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al eliminar submenú");
+
+      removeMenuItem(sectionId, item.id);
+      await fetchMenus();
+      setShowConfirmItemModal(false);
+      setItemToDelete(null);
+    } catch (err: any) {
+      console.error("Error eliminando submenú:", err);
+      setErrorMessage(err.message);
+
+      if (err.message.includes("documentos") || err.message.includes("tiene")) {
+        setShowErrorModal(true);
+      }
+
+      setShowConfirmItemModal(false);
+      setItemToDelete(null);
+    }
+  };
 
   // Render recursivo
   const renderMenuItems = (items: MenuItem[], sectionId: string, level = 0) => (
@@ -232,12 +290,23 @@ const MenuBuilder: React.FC = () => {
           <div className="menu-item">
             <span>{item.name}</span>
             <div className="menu-buttons">
-              <button onClick={() => setActiveItem(item.id)}>+ Submenú</button>
-              <button onClick={() => setEditItemId(item.id)}>Editar</button>
-              <button onClick={() => handleRemoveItem(sectionId, item.id)}>
-                Eliminar
+              <button className="btn add" onClick={() => setActiveItem(item.id)}>
+                <AiOutlinePlus /> Submenú
+              </button>
+              <button className="btn edit" onClick={() => setEditItemId(item.id)}>
+                <AiOutlineEdit /> Editar
+              </button>
+              <button
+                className="btn delete"
+                onClick={() => {
+                  setItemToDelete({ sectionId, item });
+                  setShowConfirmItemModal(true);
+                }}
+              >
+                <AiOutlineDelete /> Eliminar
               </button>
             </div>
+
           </div>
 
           {Array.isArray(item.children) && item.children.length > 0 &&
@@ -256,10 +325,23 @@ const MenuBuilder: React.FC = () => {
             <MenuItemForm
               key={`edit-${item.id}`}
               mode="edit"
-              initialData={{ name: item.name }}
-              onSubmit={(data) => handleUpdateMenuItem(sectionId, item.id, data)}
+              initialData={{
+                name: item.name,
+                menu_level: item.menu_level || "0",  // ✅ siempre pasar un valor
+              }}
+              onSubmit={(data) =>
+                handleUpdateMenuItem(
+                  sectionId,
+                  item.id,
+                  data,
+                  item.parent_menu_id || null,
+                  data.menu_level || "0"
+                )
+              }
               onCancel={() => setEditItemId(null)}
             />
+
+
           )}
         </li>
       ))}
@@ -277,7 +359,8 @@ const MenuBuilder: React.FC = () => {
           value={newSectionname}
           onChange={(e) => setNewSectionname(e.target.value)}
         />
-        <button onClick={handleAddSection}>+ Sección</button>
+        <button onClick={handleAddSection} className="btn primary"><AiOutlinePlus /> Sección</button>
+
       </div>
 
       {sections.map((section) => (
@@ -315,7 +398,8 @@ const MenuBuilder: React.FC = () => {
           )}
 
           {openSections.includes(section.id) && (
-            <button onClick={() => setActiveItem(section.id)}>+ Item</button>
+            <button className="btn primary" onClick={() => setActiveItem(section.id)}><AiOutlinePlus /> Item</button>
+
           )}
         </div>
       ))}
@@ -334,6 +418,29 @@ const MenuBuilder: React.FC = () => {
                 Cancelar
               </button>
               <button className="btn delete" onClick={confirmRemoveSection}>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 🟠 Modal Confirmación Submenú */}
+      {showConfirmItemModal && (
+        <div className="menu-modal-overlay">
+          <div className="menu-modal-content">
+            <h3>Confirmar eliminación</h3>
+            <p>
+              ¿Seguro que deseas eliminar el submenú{" "}
+              <strong>{itemToDelete?.item.name}</strong>?
+            </p>
+            <div className="modal-actions">
+              <button
+                className="btn cancel"
+                onClick={() => setShowConfirmItemModal(false)}
+              >
+                Cancelar
+              </button>
+              <button className="btn delete" onClick={confirmRemoveItem}>
                 Eliminar
               </button>
             </div>

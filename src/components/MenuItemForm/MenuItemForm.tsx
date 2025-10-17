@@ -17,23 +17,28 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({
   onCancel
 }) => {
   const [name, setName] = useState(initialData?.name || '');
+  const [menuLevel, setMenuLevel] = useState(initialData?.menu_level || '0');
 
-  // Mantener el valor sincronizado si initialData cambia
+  // Mantener sincronizado si initialData cambia
   useEffect(() => {
     setName(initialData?.name || '');
+    setMenuLevel(initialData?.menu_level || '0');
   }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = { name: name.trim() };
-    if (!data.name) return; // Validación simple
-
-    if (mode === 'add' && onAddItem) {
-      onAddItem(data); // MenuBuilder se encargará de agregar parentId o sectionId
-    } else if (mode === 'edit' && onSubmit) {
-      onSubmit(data);
-    }
+ const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  const data: Omit<MenuItem, 'id'> = { 
+    name: name.trim(),
+    menu_level: initialData?.menu_level || "0"  // usar valor existente o default
   };
+  if (!data.name) return;
+
+  if (mode === 'add' && onAddItem) {
+    onAddItem(data);
+  } else if (mode === 'edit' && onSubmit) {
+    onSubmit(data);
+  }
+};
 
   return (
     <form className="menu-item-form" onSubmit={handleSubmit}>

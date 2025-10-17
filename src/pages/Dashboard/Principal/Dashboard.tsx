@@ -35,7 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [openMenus, setOpenMenus] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
-  
+
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -44,35 +44,43 @@ const Dashboard: React.FC<DashboardProps> = ({
   }
 
   const renderMenu = (items: MenuItem[], level = 0) => (
-    <ul className={`menu level-${level}`}>
-      {items.map(item => (
-        <li key={item.label}>
-          <div
-            className={`menu-item ${item.children ? 'has-children' : ''} ${
-              activeMenu === item.option ? 'active' : ''
-            }`}
-            onClick={() => {
-  if (item.children) {
-    toggleMenu(item.label);
-  } else {
-    setActiveMenu((item.option || item.label) as MenuOption);
-  }
-}}
-
-          >
-            {item.label}
-          </div>
-          {item.children && openMenus.includes(item.label) && renderMenu(item.children, level + 1)}
-        </li>
-      ))}
-    </ul>
-  )
+  <ul className={`menu level-${level}`}>
+    {items.map(item => (
+      <li key={item.label}>
+        <div
+          className={`menu-item ${item.children ? 'menu-header' : 'menu-subitem'} ${
+            activeMenu === item.option ? 'active' : ''
+          }`}
+          onClick={() => {
+            if (item.children) {
+              toggleMenu(item.label);
+            } else {
+              setActiveMenu((item.option || item.label) as MenuOption);
+            }
+          }}
+        >
+          {item.children ? (
+            <span>
+              {item.label}{" "}
+              <span className="menu-arrow">
+                {openMenus.includes(item.label) ? "▲" : "▼"}
+              </span>
+            </span>
+          ) : (
+            item.label
+          )}
+        </div>
+        {item.children && openMenus.includes(item.label) && renderMenu(item.children, level + 1)}
+      </li>
+    ))}
+  </ul>
+);
 
   const handleLogoutClick = async () => {
-  await logout();
-  localStorage.removeItem('token'); 
-  onLogout();
-};
+    await logout();
+    localStorage.removeItem('token');
+    onLogout();
+  };
 
 
   return (

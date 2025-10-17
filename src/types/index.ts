@@ -9,6 +9,8 @@ export interface MenuItem {
   url?: string;        
   children?: MenuItem[];
   submenus?: MenuItem[];
+  menu_level: string; 
+  
 }
 
 export interface MenuSection {

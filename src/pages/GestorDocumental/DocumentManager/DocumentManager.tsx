@@ -22,7 +22,7 @@ export interface Document {
   };
 }
 
-const API_BASE = "http://192.168.2.225:3000";
+const API_BASE = "http://192.168.2.190:3000";
 
 const DocumentManager: React.FC = () => {
   const { sections, setSections } = useMenu();
@@ -35,9 +35,11 @@ const DocumentManager: React.FC = () => {
   const [tempFile, setTempFile] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [selectedMenu, setSelectedMenu] = useState("");
+  const [selectedMenu, setSelectedMenu] = useState("");
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
+  const [currentFileName, setCurrentFileName] = useState<string>("");
+
 
   // ===================== 🔐 HEADERS =====================
   const authHeaders = (contentType = "application/json") => {
@@ -49,6 +51,25 @@ const DocumentManager: React.FC = () => {
   };
 
   // ===================== 📁 MENÚS =====================
+  // Renderiza menús y submenús recursivamente
+  const renderMenuSelect = (menus: any[], level = 0): React.ReactNode[] => {
+    return menus.flatMap((menu) => {
+      const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
+      const option = (
+        <option key={menu.id} value={menu.id}>
+          {prefix + menu.name}
+        </option>
+      );
+
+      // ✅ Usa menu.submenus (igual que en DocumentUpload)
+      if (menu.submenus?.length) {
+        return [option, ...renderMenuSelect(menu.submenus, level + 1)];
+      }
+
+      return [option];
+    });
+  };
+
 
   const buildMenuTree = (menus: any[]) => {
     const map: Record<string, any> = {};
@@ -76,6 +97,37 @@ const DocumentManager: React.FC = () => {
   };
 
   useEffect(() => {
+    const refreshData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Menús
+        const menuRes = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
+        const menuData = await menuRes.json();
+        if (menuRes.ok) {
+          setSections(buildMenuTree(menuData.data || []));
+        }
+
+        // Documentos
+        const docRes = await fetch(`${API_BASE}/documents`, { headers: authHeaders() });
+        const docData = await docRes.json();
+        if (docRes.ok) {
+          setDocuments(
+            (docData.data || []).map((doc: any) => ({
+              ...doc,
+              menuId: doc.menu?.id || "",
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error refrescando datos:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // ===================== 📁 MENÚS =====================
+
     const fetchMenus = async () => {
       try {
 
@@ -92,6 +144,10 @@ const DocumentManager: React.FC = () => {
     }
     fetchMenus()
   }, [setSections]);
+  useEffect(() => {
+    refreshData(); // carga inicial de menús y documentos
+  }, []);
+
 
   // ===================== 📄 DOCUMENTOS =====================
   useEffect(() => {
@@ -121,6 +177,42 @@ const DocumentManager: React.FC = () => {
 
     fetchDocuments();
   }, []);
+  useEffect(() => {
+    refreshData(); // carga inicial de menús y documentos
+  }, []);
+
+  const refreshData = async () => {
+    try {
+      setIsLoading(true);
+
+      // Menús
+      const menuRes = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
+      const menuData = await menuRes.json();
+      if (menuRes.ok) {
+        setSections(buildMenuTree(menuData.data || []));
+      }
+
+      // Documentos
+      const docRes = await fetch(`${API_BASE}/documents`, { headers: authHeaders() });
+      const docData = await docRes.json();
+      if (docRes.ok) {
+        setDocuments(
+          (docData.data || []).map((doc: any) => ({
+            ...doc,
+            menuId: doc.menu?.id || "",
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error refrescando datos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    refreshData(); // carga inicial de menús y documentos
+  }, []);
+
 
   // ===================== 📤 SUBIR DOCUMENTOS =====================
   const handleUpload = async (files: FileList, menuId: string) => {
@@ -147,6 +239,7 @@ const DocumentManager: React.FC = () => {
         if (!res.ok) throw new Error(`Error ${res.status}: ${data.message}`);
 
         setDocuments((prev) => [...prev, data.data]);
+        await refreshData();
       } catch (err) {
         console.error(" Error subiendo documento:", err);
         alert("Error subiendo documento. Revisa consola para más detalles.");
@@ -169,6 +262,7 @@ const DocumentManager: React.FC = () => {
         method: "DELETE",
         headers: authHeaders(),
       });
+      await refreshData();
       setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
     } catch (err) {
       console.error(" Error eliminando documento:", err);
@@ -183,6 +277,7 @@ const DocumentManager: React.FC = () => {
     setTempName(doc.name);
     setTempMenuId(doc.menuId || "");
     setTempFile(null);
+    setCurrentFileName(doc.name);
   };
   const renderMenuOptions = (menus: any[], prefix = "") =>
     menus.map((m: any) => (
@@ -191,7 +286,6 @@ const DocumentManager: React.FC = () => {
         {m.children && renderMenuOptions(m.children, prefix + "└─ ")}
       </React.Fragment>
     ));
-
 
 
   const saveModalChanges = async () => {
@@ -204,7 +298,10 @@ const DocumentManager: React.FC = () => {
     formData.append("name", tempName);
     formData.append("menu_id", tempMenuId);
     if (userId) formData.append("user_id", userId);
-    if (tempFile) formData.append("file", tempFile);
+
+    if (tempFile) {
+      formData.append("file", tempFile);
+    }
 
     try {
       const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
@@ -212,24 +309,24 @@ const DocumentManager: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-
       if (!res.ok) {
-        const text = await res.text(); // leer texto por si es error HTML
+        const text = await res.text();
         throw new Error(`Error ${res.status}: ${text}`);
       }
+      await refreshData();
 
-      const data = await res.json();
-      setDocuments((prev) =>
-        prev.map((d) => (d.id === data.data.id ? data.data : d))
-      );
     } catch (err) {
       console.error("Error actualizando documento:", err);
       alert("Error actualizando documento. Revisa consola para más detalles.");
+    } finally {
+      setModalType(null);
+      setModalDoc(null);
+      setTempFile(null);
+      setCurrentFileName("");
     }
-
-    setModalType(null);
-    setModalDoc(null);
   };
+
+
   const renderOption = (menu: any, level = 0): React.JSX.Element[] => {
     const prefix = "└─ ".repeat(level); // indentación según nivel
     const options: React.JSX.Element[] = [
@@ -246,25 +343,25 @@ const DocumentManager: React.FC = () => {
 
     return options;
   };
-// Función recursiva para renderizar submenus
-const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
-  return menus.flatMap((menu) => {
-    const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
-    const option = (
-      <option key={menu.id} value={menu.id}>
-        {prefix + menu.name}
-      </option>
-    );
+  // Función recursiva para renderizar submenus
+  const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
+    return menus.flatMap((menu) => {
+      const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
+      const option = (
+        <option key={menu.id} value={menu.id}>
+          {prefix + menu.name}
+        </option>
+      );
 
-    if (menu.children?.length) {
-      return [option, ...renderOptions(menu.children, level + 1)];
-    }
+      if (menu.children?.length) {
+        return [option, ...renderOptions(menu.children, level + 1)];
+      }
 
-    return [option];
-  });
-};
+      return [option];
+    });
+  };
 
- 
+
 
   const handleView = (doc: Document) => setSelectedDocument(doc);
 
@@ -304,7 +401,7 @@ const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
         documents={documents}
         sections={sections}
         onDelete={handleDelete}
-         onEdit={handleEdit}
+        onEdit={handleEdit}
         onView={handleView}
         onSectionChange={handleSectionChange}
       />
@@ -353,43 +450,49 @@ const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
               </>
             ) : (
               <>
-                <h3>Editar documento</h3>
-                <label>Nombre:</label>
-                <input
-                  type="text"
-                  value={tempName}
-                  onChange={(e) => setTempName(e.target.value)}
-                  className="modal-input"
-                />
-                <h3>Seleccionar sección</h3>
-              <select
-                value={selectedMenu}
-                onChange={(e) => setSelectedMenu(e.target.value)}
-              >
-                <option value="">- Seleccionar sección -</option>
-                {renderOptions(sections)}
-              </select>
+                {modalType === "edit" && (
+                  <>
+                    <h3>Editar documento</h3>
+
+                    <label>Nombre:</label>
+                    <input
+                      type="text"
+                      value={tempName}
+                      onChange={(e) => setTempName(e.target.value)}
+                      className="modal-input"
+                    />
+
+                    <h3>Seleccionar menú o submenú</h3>
+                    <select
+                      value={tempMenuId}
+                      onChange={(e) => setTempMenuId(e.target.value)}
+                      className="modal-input"
+                    >
+                      <option value="">- Seleccionar sección -</option>
+                      {renderMenuSelect(sections)}
+                    </select>
+
+                    <label>Archivo actual:</label>
+                    <p>{currentFileName}</p>
+
+                    <label>Reemplazar archivo (opcional):</label>
+                    <input
+                      type="file"
+                      onChange={(e) => setTempFile(e.target.files ? e.target.files[0] : null)}
+                      className="modal-input"
+                    />
 
 
-
-
-                <label>Reemplazar archivo:</label>
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    setTempFile(e.target.files ? e.target.files[0] : null)
-                  }
-                  className="modal-input"
-                />
-
-                <div className="modal-actions">
-                  <button className="cancel-btn" onClick={() => setModalType(null)}>
-                    Cancelar
-                  </button>
-                  <button className="save-btn" onClick={saveModalChanges}>
-                    Guardar
-                  </button>
-                </div>
+                    <div className="modal-actions">
+                      <button className="cancel-btn" onClick={() => setModalType(null)}>
+                        Cancelar
+                      </button>
+                      <button className="save-btn" onClick={saveModalChanges}>
+                        Guardar
+                      </button>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>

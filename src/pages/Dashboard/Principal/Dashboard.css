@@ -1,3 +1,71 @@
+/* ====== ENCABEZADOS DE MENÚ (Dashboard) ====== */
+.dashboard-nav .menu-header {
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  background: black;
+  border-radius: 10px;
+  padding: 10px 18px;
+  margin: 0 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-nav .menu-header:hover {
+  background: #f97316;
+  transform: translateY(-2px);
+}
+
+.dashboard-nav .menu-arrow {
+  font-size: 0.8rem;
+  margin-left: 5px;
+  opacity: 0.9;
+}
+
+/* ====== SUBITEMS (Dashboard) ====== */
+.dashboard-nav .menu-subitem {
+  color: #1e293b;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin: 5px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.dashboard-nav .menu-subitem:hover {
+  background: #e2e8f0;
+  color: #2563eb;
+  transform: translateX(3px);
+}
+
+.dashboard-nav .menu-subitem.active {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  transform: scale(1.02);
+}
+
+/* ====== AJUSTES DE LAYOUT ====== */
+.dashboard-nav .menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-nav .menu.level-1 {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Layout con menú superior */
 .dashboard-top-layout {
   display: flex;
