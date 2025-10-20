@@ -43,37 +43,43 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
   const API_BASE = "http://192.168.2.226:3000";
   // 🔹 Carga inicial del menú
-  useEffect(() => {
+ useEffect(() => {
+  const fetchMenu = async () => {
+    try {
+      const token = localStorage.getItem("token"); // o donde lo guardes
+      const res = await fetch("http://192.168.2.226:3000/menus", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
 
-    const fetchMenu = async () => {
-      try {
-        const res = await fetch("http://192.168.2.226:3000/menus");
-        if (!res.ok) throw new Error("Error al cargar menú");
-        const result = await res.json();
+      if (!res.ok) throw new Error("Error al cargar menú");
+      const result = await res.json();
 
-        const normalizeMenu = (menuchildren: any[]): any[] =>
-          menuchildren.map((item) => ({
-            id: item.id,
-            name: item.name,
-            parentId: item.parent_menu_id,
-            level: item.menu_level,
-            children: item.submenus ? normalizeMenu(item.submenus) : [],
-          }));
-
-        const normalizedSections = (result.data || []).map((menu: any) => ({
-          id: menu.id,
-          name: menu.name,
-          children: normalizeMenu(menu.submenus || []),
+      const normalizeMenu = (menuchildren: any[]): any[] =>
+        menuchildren.map((item) => ({
+          id: item.id,
+          name: item.name,
+          parentId: item.parent_menu_id,
+          level: item.menu_level,
+          children: item.submenus ? normalizeMenu(item.submenus) : [],
         }));
 
-        setSections(normalizedSections);
-      } catch (err) {
-        console.error(" No se pudo cargar el menú:", err);
-      }
-    };
+      const normalizedSections = (result.data || []).map((menu: any) => ({
+        id: menu.id,
+        name: menu.name,
+        children: normalizeMenu(menu.submenus || []),
+      }));
 
-    fetchMenu();
-  }, []);
+      setSections(normalizedSections);
+    } catch (err) {
+      console.error("❌ No se pudo cargar el menú:", err);
+    }
+  };
+
+  fetchMenu();
+}, []);
 
   // 🔹 Cargar documentos de un menú específico
   const handleMenuClick = async (item: MenuItem) => {
@@ -173,7 +179,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         </button>
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
-            <p style={{ padding: "10px" }}>Cargando menú...</p>
+            <p style={{ padding: "10px" }}></p>
           ) : (
             sections.map((section) => (
               <div key={section.id} className="menu-section">
@@ -188,8 +194,23 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   {section.name}
                 </h3>
                 {openSection === section.id && section.children.length > 0 && (
-                  <div className="submenu-dropdown">{renderMenu(section.children)}</div>
+                  <div className="submenu-dropdown">
+                    {renderMenu(
+                      section.children.map((c) => ({
+                        id: c.id,
+                        name: c.name,
+                        menu_level: "1",
+                        children: (c.children || []).map((child) => ({
+                          id: child.id,
+                          name: child.name,
+                          menu_level: "2",
+                          children: [],
+                        })),
+                      })) as MenuItem[]
+                    )}
+                  </div>
                 )}
+
               </div>
             ))
           )}
@@ -264,7 +285,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                       <span className="doc-name">{doc.name}</span>
 
                       <div className="doc-actions">
-                        
+
                         {doc.type.includes("pdf") && (
                           <button
                             className="icon-btn"

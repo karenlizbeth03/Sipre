@@ -3,15 +3,16 @@ export type MenuOption = 'home' | 'documents' | 'nuevo_menu';
 
 export interface MenuItem {
   id: string;
-  name: string;        
+  name: string;
   parent_menu_id?: string | null;
   option?: MenuOption;
-  url?: string;        
+  url?: string;
   children?: MenuItem[];
   submenus?: MenuItem[];
-  menu_level: string; 
-  
+  menu_level: string;
+  items?: MenuItem[];
 }
+
 
 export interface MenuSection {
   

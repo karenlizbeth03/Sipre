@@ -136,19 +136,14 @@ const MenuBuilder: React.FC = () => {
   const handleUpdateMenuItem = async (
     _sectionId: string,
     itemId: string,
-    itemData: Omit<MenuItem, "id" | "parent_menu_id" | "menu_level">,
-    parentMenuId: string | null = null, // nuevo parámetro
-    menuLevel: string | null = "0" // nuevo parámetro
+    itemData: Omit<MenuItem, "id" | "parent_menu_id" | "menu_level">
   ) => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Token guardado:", token);
-      console.log("Actualizando item:", { itemId, parentMenuId, menuLevel });
+      if (!token) throw new Error("No se encontró token de autenticación");
 
-      const payload: any = {
-        name: itemData.name,
-        parent_menu_id: parentMenuId,
-        menu_level: menuLevel,
+      const payload = {
+        name: itemData.name, // SOLO name
       };
 
       const res = await fetch(`${API_URL}/${encodeURIComponent(itemId)}`, {
@@ -161,12 +156,15 @@ const MenuBuilder: React.FC = () => {
       });
 
       const result = await res.json();
+
       if (!res.ok) throw new Error(result.message || "Error al actualizar menú");
 
       setEditItemId(null);
-      await fetchMenus(); // refresca lista automáticamente
-    } catch (err) {
+      await fetchMenus();
+    } catch (err: any) {
       console.error("Error actualizando menú:", err);
+      setErrorMessage(err.message || "Ocurrió un error al actualizar el menú");
+      setShowErrorModal(true);
     }
   };
 
@@ -334,8 +332,6 @@ const MenuBuilder: React.FC = () => {
                   sectionId,
                   item.id,
                   data,
-                  item.parent_menu_id || null,
-                  data.menu_level || "0"
                 )
               }
               onCancel={() => setEditItemId(null)}

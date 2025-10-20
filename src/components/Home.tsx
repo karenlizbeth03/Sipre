@@ -1,18 +1,36 @@
-import React from "react";
-// import DocumentsPanel from "../pages/GestorDocumental/DocumentsPanel";
-import type { Document } from "../types";
-import galaImg from '../assets/gala.jpg';
+import React, { useState } from "react";
+import type { Document } from "../types"; // 👈 importa el tipo Document
+import galaImg from "../assets/gala.jpg";
+import gala2 from "../assets/gala2.jpg";
+import gala3 from "../assets/gala3.jpg";
+import "./Home.css";
 
+// ✅ 1. Define la interfaz de props
 interface HomeProps {
   documents: Document[];
 }
 
+// ✅ 2. Define el componente correctamente
 const Home: React.FC<HomeProps> = ({ documents }) => {
+  const images = [galaImg, gala2, gala3];
+  const [paused, setPaused] = useState(false);
+
   return (
     <div className="home">
-      <div className="page-content">
-        <div className="hero-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <img src={galaImg} alt="Inicio" style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', marginTop: '24px' }} />
+      <div className="hero-section">
+        <div
+          className="carousel-wrapper"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          <div className={`carousel-track ${paused ? "paused" : ""}`}>
+            {/* Duplicamos las imágenes para efecto infinito */}
+            {[...images, ...images].map((img, i) => (
+              <div className="carousel-item" key={i}>
+                <img src={img} alt={`img-${i}`} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
