@@ -21,7 +21,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
     setError('');
 
     try {
-      const res = await fetch('http://192.168.2.190:3000/auth/login', {
+      const res = await fetch('http://192.168.2.226:3000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -6,7 +6,7 @@ import "./MenuBuilder.css";
 import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 
 
-const API_URL = "http://192.168.2.190:3000/menus";
+const API_URL = "http://192.168.2.226:3000/menus";
 
 // Normaliza la estructura del backend
 const normalizeMenuTree = (menus: any[]): MenuSection[] => {

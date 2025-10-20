@@ -28,7 +28,7 @@ const DocumentListPage: React.FC<Props> = ({
   onSectionChange,
 }) => {
   const [search, setSearch] = useState("");
-  const API_BASE = "http://192.168.2.190:3000";
+  const API_BASE = "http://192.168.2.226:3000";
 
   const filteredDocs = documents.filter((doc) =>
     doc.name?.toLowerCase().includes(search.toLowerCase())
