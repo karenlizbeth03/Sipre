@@ -122,6 +122,23 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       setFilteredDocs([]);
     }
   };
+  const handlePreview = async (doc: Document) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("No se pudo cargar el PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      setPreviewDoc({ ...doc, url }); // reemplaza la URL por la blob URL
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo cargar el PDF para vista previa");
+    }
+  };
 
   const toggleItem = (itemId: string) => {
     setOpenchildren((prev) => ({
@@ -129,6 +146,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       [itemId]: !prev[itemId],
     }));
   };
+
 
   const handleLoginSuccess = (token: string) => {
     setShowLogin(false);
@@ -165,7 +183,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   </li>
                 ))}
               </ul>
-            )} 
+            )}
 
 
             {/* Submenús */}
@@ -300,11 +318,12 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                         {doc.type.includes("pdf") && (
                           <button
                             className="icon-btn"
-                            onClick={() => setPreviewDoc(doc)}
+                            onClick={() => handlePreview(doc)}
                             title="Visualizar PDF"
                           >
                             <AiOutlineEye />
                           </button>
+
                         )}
 
                         <button
