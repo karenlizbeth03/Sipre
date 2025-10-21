@@ -43,43 +43,43 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
   const API_BASE = "http://192.168.1.3:3000";
   // 🔹 Carga inicial del menú
- useEffect(() => {
-  const fetchMenu = async () => {
-    try {
-      const token = localStorage.getItem("token"); // o donde lo guardes
-      const res = await fetch("http://192.168.1.3:3000/menus", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const token = localStorage.getItem("token"); // o donde lo guardes
+        const res = await fetch("http://192.168.1.3:3000/menus", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
 
-      if (!res.ok) throw new Error("Error al cargar menú");
-      const result = await res.json();
+        if (!res.ok) throw new Error("Error al cargar menú");
+        const result = await res.json();
 
-      const normalizeMenu = (menuchildren: any[]): any[] =>
-        menuchildren.map((item) => ({
-          id: item.id,
-          name: item.name,
-          parentId: item.parent_menu_id,
-          level: item.menu_level,
-          children: item.submenus ? normalizeMenu(item.submenus) : [],
+        const normalizeMenu = (menuchildren: any[]): any[] =>
+          menuchildren.map((item) => ({
+            id: item.id,
+            name: item.name,
+            parentId: item.parent_menu_id,
+            level: item.menu_level,
+            children: item.submenus ? normalizeMenu(item.submenus) : [],
+          }));
+
+        const normalizedSections = (result.data || []).map((menu: any) => ({
+          id: menu.id,
+          name: menu.name,
+          children: normalizeMenu(menu.submenus || []),
         }));
 
-      const normalizedSections = (result.data || []).map((menu: any) => ({
-        id: menu.id,
-        name: menu.name,
-        children: normalizeMenu(menu.submenus || []),
-      }));
+        setSections(normalizedSections);
+      } catch (err) {
+        console.error("❌ No se pudo cargar el menú:", err);
+      }
+    };
 
-      setSections(normalizedSections);
-    } catch (err) {
-      console.error("❌ No se pudo cargar el menú:", err);
-    }
-  };
-
-  fetchMenu();
-}, []);
+    fetchMenu();
+  }, []);
 
   // 🔹 Cargar documentos de un menú específico
   const handleMenuClick = async (item: MenuItem) => {
@@ -214,9 +214,10 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </div>
             ))
           )}
-          <button className="login-btn" onClick={onLogout}>
-            <center>Iniciar Sesión</center>
+          <button className="logout-btn" onClick={onLogout}>
+            <center>Cerrar Sesión</center>
           </button>
+
 
         </nav>
       </header>
