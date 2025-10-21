@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const API_URL = 'http://192.168.2.226:3000';
+  const API_URL = 'http://192.168.1.3:3000';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
