@@ -51,7 +51,13 @@ const MenuBuilder: React.FC = () => {
   // Fetch inicial
   const fetchMenus = useCallback(async () => {
     try {
-      const res = await fetch(API_URL);
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(API_URL, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!res.ok) throw new Error("Error al cargar menús");
       const result = await res.json();
       const normalized = normalizeMenuTree(result.data || []);
@@ -60,6 +66,7 @@ const MenuBuilder: React.FC = () => {
       console.error("Error cargando menús:", err);
     }
   }, []);
+
 
   // ✅ 2. Llamar una vez al inicio
   useEffect(() => {
