@@ -53,7 +53,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
 
   const fetchRoles = async () => {
     try {
-      const res = await fetch("http://192.168.2.226:3000/roles", {
+      const res = await fetch("http://192.168.1.3:3000/roles", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -66,7 +66,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://192.168.2.226:3000/users", {
+      const res = await fetch("http://192.168.1.3:3000/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -103,7 +103,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
     }
 
     try {
-      const res = await fetch("http://192.168.2.226:3000/users", {
+      const res = await fetch("http://192.168.1.3:3000/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -146,7 +146,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   const handleUpdateUser = async () => {
     if (!editingUser) return;
     try {
-      const res = await fetch(`http://192.168.2.226:3000/users/${editingUser.id}`, {
+      const res = await fetch(`http://192.168.1.3:3000/users/${editingUser.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +178,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
     if (!window.confirm("¿Seguro que deseas eliminar este usuario?")) return;
 
     try {
-      const res = await fetch(`http://192.168.2.226:3000/users/${id}`, {
+      const res = await fetch(`http://192.168.1.3:3000/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -204,7 +204,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
     }
 
     try {
-      const res = await fetch(`http://192.168.2.226:3000/users/${passwordModalUser.id}`, {
+      const res = await fetch(`http://192.168.1.3:3000/users/${passwordModalUser.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

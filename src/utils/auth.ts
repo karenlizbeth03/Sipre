@@ -2,7 +2,7 @@
 
 export async function logout(): Promise<void> {
   try {
-    await fetch('http://192.168.2.226:3000/auth/logout', {
+    await fetch('http://192.168.1.3:3000/auth/logout', {
       method: 'POST',
       credentials: 'include',
     });
