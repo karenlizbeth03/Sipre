@@ -155,8 +155,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               {item.name}
             </div>
 
-
-            {/* Documentos del menú 
             {isOpen && docsForMenu.length > 0 && (
               <ul className="menu-docs">
                 {docsForMenu.map((doc) => (
@@ -167,7 +165,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   </li>
                 ))}
               </ul>
-            )} */}
+            )} 
 
 
             {/* Submenús */}
