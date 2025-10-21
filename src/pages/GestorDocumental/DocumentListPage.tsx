@@ -61,7 +61,11 @@ const DocumentListPage: React.FC<Props> = ({
   // 🔹 Descarga directa usando el endpoint existente /documents/view/{id}
   const handleDownload = async (doc: Document) => {
     try {
-      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (!response.ok) throw new Error("Error al descargar el documento");
 
       const blob = await response.blob();
@@ -125,6 +129,7 @@ const DocumentListPage: React.FC<Props> = ({
                       <AiOutlineEye />
                     </button>
                   )}
+
 
                   <button onClick={() => onEdit(doc)} title="Editar">
                     <AiOutlineEdit />

@@ -64,7 +64,7 @@
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 0.95rem;
-  background: #9fc9f3;
+  background: #f8fafc;
 }
 
 .document-table option {
@@ -107,11 +107,12 @@
   border-radius: 10px;
   overflow: hidden;
 }
-
 .document-table thead {
-  background: #2c3e50;
-  color: #ffffff;
-  text-align: left;
+  background: #e9eef5;
+  color: #2c3e50;
+}
+.document-table th {
+  font-weight: 600;
 }
 
 .document-table th,
@@ -126,7 +127,7 @@
 }
 
 .document-table tbody tr:hover {
-  background: #000000;
+  background: #f0f4f8;
 }
 
 /* ================= Acciones ================= */

@@ -94,9 +94,17 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         return;
       }
 
+      const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://192.168.1.3:3000/documents/get-by-menu/${item.id}`
+        `http://192.168.1.3:3000/documents/get-by-menu/${item.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
       );
+
       if (!res.ok) throw new Error("Error al cargar documentos por menú");
 
       const result = await res.json();
@@ -259,7 +267,11 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   // 🔹 Función de descarga forzada
                   const handleDownload = async () => {
                     try {
-                      const response = await fetch(viewUrl);
+                      const token = localStorage.getItem("token");
+                      const response = await fetch(viewUrl, {
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
+
                       if (!response.ok) throw new Error("Error al descargar el documento");
 
                       const blob = await response.blob();
