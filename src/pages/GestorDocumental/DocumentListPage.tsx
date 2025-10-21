@@ -57,26 +57,24 @@ const DocumentListPage: React.FC<Props> = ({
 
     return findMenu(sections) || menuId;
   };
-  const handleView = async (doc: Document) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("No se pudo cargar el PDF");
+ const handleView = async (doc: Document) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://192.168.1.3:3000/documents/view/${doc.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+    if (!response.ok) throw new Error("Unauthorized");
 
-      // Aquí puedes abrir un modal o ventana nueva
-      window.open(url, "_blank");
-      // O si tienes un modal con DocumentViewer:
-      // setPreviewDoc({ ...doc, url });
-    } catch (err) {
-      console.error(err);
-      alert("No se pudo cargar el PDF para vista previa");
-    }
-  };
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank"); // abre el PDF en nueva pestaña
+  } catch (err) {
+    console.error(err);
+    alert("No se pudo cargar el documento. Asegúrate de estar logueado.");
+  }
+};
+
 
   // 🔹 Descarga directa usando el endpoint existente /documents/view/{id}
   const handleDownload = async (doc: Document) => {

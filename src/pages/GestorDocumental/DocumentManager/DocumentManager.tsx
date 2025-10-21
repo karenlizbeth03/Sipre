@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import DocumentUpload from "../DocumentUpload/DocumentUpload";
 import DocumentListPage from "../DocumentListPage";
-import "./DocumentManager.css";
 import DocumentViewer from "../DocumentViewer/DocumentViewer";
 import { useMenu } from "../../../hooks/useMenu";
+import "./DocumentManager.css";
 
 export interface Document {
   id: string;
@@ -33,44 +33,26 @@ const DocumentManager: React.FC = () => {
   const [tempName, setTempName] = useState("");
   const [tempMenuId, setTempMenuId] = useState("");
   const [tempFile, setTempFile] = useState<File | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedMenu, setSelectedMenu] = useState("");
+  const [currentFileName, setCurrentFileName] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const uploadRef = useRef<{ triggerUpload: () => void }>(null);
-  const [currentFileName, setCurrentFileName] = useState<string>("");
-
 
   // ===================== 🔐 HEADERS =====================
   const authHeaders = (contentType = "application/json") => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Sesión expirada. Inicie sesión de nuevo.");
+      window.location.href = "/login";
+    }
     return {
       "Content-Type": contentType,
       Authorization: `Bearer ${token}`,
     };
   };
 
-  // ===================== 📁 MENÚS =====================
-  // Renderiza menús y submenús recursivamente
-  const renderMenuSelect = (menus: any[], level = 0): React.ReactNode[] => {
-    return menus.flatMap((menu) => {
-      const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
-      const option = (
-        <option key={menu.id} value={menu.id}>
-          {prefix + menu.name}
-        </option>
-      );
-
-      // ✅ Usa menu.submenus (igual que en DocumentUpload)
-      if (menu.submenus?.length) {
-        return [option, ...renderMenuSelect(menu.submenus, level + 1)];
-      }
-
-      return [option];
-    });
-  };
-
-
+  // ===================== MENÚS =====================
   const buildMenuTree = (menus: any[]) => {
     const map: Record<string, any> = {};
     menus.forEach((m) => {
@@ -82,12 +64,8 @@ const DocumentManager: React.FC = () => {
     menus.forEach((m) => {
       if (m.parent_menu_id) {
         const parent = map[m.parent_menu_id];
-        if (parent) {
-          parent.children.push(map[m.id]);
-        } else {
-          // Si el parent no existe, lo tratamos como raíz
-          roots.push(map[m.id]);
-        }
+        if (parent) parent.children.push(map[m.id]);
+        else roots.push(map[m.id]);
       } else {
         roots.push(map[m.id]);
       }
@@ -96,91 +74,20 @@ const DocumentManager: React.FC = () => {
     return roots;
   };
 
-  useEffect(() => {
-    const refreshData = async () => {
-      try {
-        setIsLoading(true);
+  const renderMenuSelect = (menus: any[], level = 0): React.ReactNode[] => {
+    return menus.flatMap((menu) => {
+      const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
+      const option = (
+        <option key={menu.id} value={menu.id}>
+          {prefix + menu.name}
+        </option>
+      );
+      if (menu.children?.length) return [option, ...renderMenuSelect(menu.children, level + 1)];
+      return [option];
+    });
+  };
 
-        // Menús
-        const menuRes = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
-        const menuData = await menuRes.json();
-        if (menuRes.ok) {
-          setSections(buildMenuTree(menuData.data || []));
-        }
-
-        // Documentos
-        const docRes = await fetch(`${API_BASE}/documents`, { headers: authHeaders() });
-        const docData = await docRes.json();
-        if (docRes.ok) {
-          setDocuments(
-            (docData.data || []).map((doc: any) => ({
-              ...doc,
-              menuId: doc.menu?.id || "",
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error refrescando datos:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // ===================== 📁 MENÚS =====================
-
-    const fetchMenus = async () => {
-      try {
-
-        const response = await fetch(`${API_BASE}/menus`, {
-          headers: authHeaders(),
-        })
-        const data = await response.json()
-        if (!response.ok) throw new Error(data.message || "Error al cargar menús")
-        setSections(buildMenuTree(data.data || []));
-      } catch (error) {
-        console.error("Error cargando menús:", error)
-        setStatusMessage(" Error al cargar menús. Verifique su conexión o sesión.")
-      }
-    }
-    fetchMenus()
-  }, [setSections]);
-  useEffect(() => {
-    refreshData(); // carga inicial de menús y documentos
-  }, []);
-
-
-  // ===================== 📄 DOCUMENTOS =====================
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${API_BASE}/documents`, {
-          headers: authHeaders(),
-        });
-        const data = await response.json();
-
-        if (!response.ok) throw new Error(data.message || "Error al cargar documentos");
-
-        const normalizedDocs = (data.data || []).map((doc: any) => ({
-          ...doc,
-          menuId: doc.menu?.id || "",
-        }));
-
-        setDocuments(normalizedDocs);
-      } catch (error) {
-        console.error("Error cargando documentos:", error);
-        setStatusMessage(" Error al cargar documentos. Verifique su conexión o sesión.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDocuments();
-  }, []);
-  useEffect(() => {
-    refreshData(); // carga inicial de menús y documentos
-  }, []);
-
+  // ===================== REFRESH DATA =====================
   const refreshData = async () => {
     try {
       setIsLoading(true);
@@ -188,9 +95,7 @@ const DocumentManager: React.FC = () => {
       // Menús
       const menuRes = await fetch(`${API_BASE}/menus`, { headers: authHeaders() });
       const menuData = await menuRes.json();
-      if (menuRes.ok) {
-        setSections(buildMenuTree(menuData.data || []));
-      }
+      if (menuRes.ok) setSections(buildMenuTree(menuData.data || []));
 
       // Documentos
       const docRes = await fetch(`${API_BASE}/documents`, { headers: authHeaders() });
@@ -205,27 +110,26 @@ const DocumentManager: React.FC = () => {
       }
     } catch (error) {
       console.error("Error refrescando datos:", error);
+      setStatusMessage("Error cargando datos. Verifique su sesión.");
     } finally {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
-    refreshData(); // carga inicial de menús y documentos
+    refreshData();
   }, []);
 
-
-  // ===================== 📤 SUBIR DOCUMENTOS =====================
+  // ===================== SUBIR DOCUMENTOS =====================
   const handleUpload = async (files: FileList, menuId: string) => {
-    const fileArray = Array.from(files);
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
 
-    for (const file of fileArray) {
+    for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", file.name);
       formData.append("menu_id", menuId);
-
       if (userId) formData.append("user_id", userId);
 
       try {
@@ -234,15 +138,13 @@ const DocumentManager: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
-
         const data = await res.json();
-        if (!res.ok) throw new Error(`Error ${res.status}: ${data.message}`);
-
+        if (!res.ok) throw new Error(data.message || "Error subiendo documento");
         setDocuments((prev) => [...prev, data.data]);
         await refreshData();
       } catch (err) {
-        console.error(" Error subiendo documento:", err);
-        alert("Error subiendo documento. Revisa consola para más detalles.");
+        console.error("Error subiendo documento:", err);
+        alert("Error subiendo documento. Revisa consola.");
       }
     }
   };
@@ -251,8 +153,8 @@ const DocumentManager: React.FC = () => {
   const handleDelete = (id: string) => {
     const doc = documents.find((d) => d.id === id);
     if (!doc) return;
-    setModalType("delete");
     setModalDoc(doc);
+    setModalType("delete");
   };
 
   const confirmDelete = async () => {
@@ -262,46 +164,34 @@ const DocumentManager: React.FC = () => {
         method: "DELETE",
         headers: authHeaders(),
       });
-      await refreshData();
       setDocuments((prev) => prev.filter((d) => d.id !== modalDoc.id));
+      await refreshData();
     } catch (err) {
-      console.error(" Error eliminando documento:", err);
+      console.error("Error eliminando documento:", err);
+    } finally {
+      setModalType(null);
+      setModalDoc(null);
     }
-    setModalType(null);
-    setModalDoc(null);
   };
 
   const handleEdit = (doc: Document) => {
-    setModalType("edit");
     setModalDoc(doc);
+    setModalType("edit");
     setTempName(doc.name);
     setTempMenuId(doc.menuId || "");
     setTempFile(null);
     setCurrentFileName(doc.name);
   };
-  const renderMenuOptions = (menus: any[], prefix = "") =>
-    menus.map((m: any) => (
-      <React.Fragment key={m.id}>
-        <option value={m.id}>{prefix + m.name}</option>
-        {m.children && renderMenuOptions(m.children, prefix + "└─ ")}
-      </React.Fragment>
-    ));
-
 
   const saveModalChanges = async () => {
     if (!modalDoc) return;
-
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
     const formData = new FormData();
-
     formData.append("name", tempName);
     formData.append("menu_id", tempMenuId);
     if (userId) formData.append("user_id", userId);
-
-    if (tempFile) {
-      formData.append("file", tempFile);
-    }
+    if (tempFile) formData.append("file", tempFile);
 
     try {
       const res = await fetch(`${API_BASE}/documents/${modalDoc.id}`, {
@@ -314,10 +204,9 @@ const DocumentManager: React.FC = () => {
         throw new Error(`Error ${res.status}: ${text}`);
       }
       await refreshData();
-
     } catch (err) {
       console.error("Error actualizando documento:", err);
-      alert("Error actualizando documento. Revisa consola para más detalles.");
+      alert("Error actualizando documento. Revisa consola.");
     } finally {
       setModalType(null);
       setModalDoc(null);
@@ -326,44 +215,23 @@ const DocumentManager: React.FC = () => {
     }
   };
 
-
-  const renderOption = (menu: any, level = 0): React.JSX.Element[] => {
-    const prefix = "└─ ".repeat(level); // indentación según nivel
-    const options: React.JSX.Element[] = [
-      <option key={menu.id} value={menu.id}>
-        {prefix + menu.name}
-      </option>,
-    ];
-
-    if (menu.children?.length) {
-      menu.children.forEach((child: any) => {
-        options.push(...renderOption(child, level + 1));
+  // ===================== VER DOCUMENTOS =====================
+  const handleView = async (doc: Document) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!res.ok) throw new Error("Unauthorized");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo cargar el documento. Asegúrate de estar logueado.");
     }
-
-    return options;
   };
-  // Función recursiva para renderizar submenus
-  const renderOptions = (menus: any[], level = 0): React.ReactNode[] => {
-    return menus.flatMap((menu) => {
-      const prefix = " ".repeat(level * 2) + (level > 0 ? "└─ " : "");
-      const option = (
-        <option key={menu.id} value={menu.id}>
-          {prefix + menu.name}
-        </option>
-      );
-
-      if (menu.children?.length) {
-        return [option, ...renderOptions(menu.children, level + 1)];
-      }
-
-      return [option];
-    });
-  };
-
-
-
-  const handleView = (doc: Document) => setSelectedDocument(doc);
 
   const handleSectionChange = (docId: string, sectionId: string) => {
     setDocuments((prev) =>
@@ -374,7 +242,7 @@ const DocumentManager: React.FC = () => {
       method: "PUT",
       headers: authHeaders(),
       body: JSON.stringify({ menuId: sectionId }),
-    }).catch((err) => console.error("Error guardando en backend:", err));
+    }).catch((err) => console.error("Error guardando sección:", err));
   };
 
   // ===================== RENDER =====================
@@ -382,20 +250,12 @@ const DocumentManager: React.FC = () => {
     <div className="document-manager">
       <div className="document-header">
         <h2>Gestión de Documentos</h2>
-        <button
-          className="subirdocs-btn"
-          onClick={() => uploadRef.current?.triggerUpload()}
-        >
+        <button className="subirdocs-btn" onClick={() => uploadRef.current?.triggerUpload()}>
           Subir Documentos
         </button>
       </div>
 
-      {/* 🔹 DocumentUpload maneja su propio modal */}
-      <DocumentUpload
-        ref={uploadRef}
-        onUpload={handleUpload}
-        sections={sections}
-      />
+      <DocumentUpload ref={uploadRef} onUpload={handleUpload} sections={sections} />
 
       <DocumentListPage
         documents={documents}
@@ -411,11 +271,7 @@ const DocumentManager: React.FC = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{selectedDocument.name}</h3>
-              <button
-                className="close-btn"
-                onClick={() => setSelectedDocument(null)}
-                title="Cerrar"
-              >
+              <button className="close-btn" onClick={() => setSelectedDocument(null)}>
                 ✖
               </button>
             </div>
@@ -429,7 +285,6 @@ const DocumentManager: React.FC = () => {
         </div>
       )}
 
-      {/* Modal editar / eliminar */}
       {modalType && (
         <div className="modal-overlay" onClick={() => setModalType(null)}>
           <div className="modal-content small" onClick={(e) => e.stopPropagation()}>
@@ -440,60 +295,35 @@ const DocumentManager: React.FC = () => {
                   Estás a punto de eliminar <b>{modalDoc?.name}</b>.
                 </p>
                 <div className="modal-actions">
-                  <button className="cancel-btn" onClick={() => setModalType(null)}>
-                    Cancelar
-                  </button>
-                  <button className="delete-btn" onClick={confirmDelete}>
-                    Eliminar
-                  </button>
+                  <button className="cancel-btn" onClick={() => setModalType(null)}>Cancelar</button>
+                  <button className="delete-btn" onClick={confirmDelete}>Eliminar</button>
                 </div>
               </>
             ) : (
-              <>
-                {modalType === "edit" && (
-                  <>
-                    <h3>Editar documento</h3>
+              modalType === "edit" && (
+                <>
+                  <h3>Editar documento</h3>
+                  <label>Nombre:</label>
+                  <input type="text" value={tempName} onChange={(e) => setTempName(e.target.value)} className="modal-input" />
 
-                    <label>Nombre:</label>
-                    <input
-                      type="text"
-                      value={tempName}
-                      onChange={(e) => setTempName(e.target.value)}
-                      className="modal-input"
-                    />
+                  <label>Seleccionar menú o submenú:</label>
+                  <select value={tempMenuId} onChange={(e) => setTempMenuId(e.target.value)} className="modal-input">
+                    <option value="">- Seleccionar sección -</option>
+                    {renderMenuSelect(sections)}
+                  </select>
 
-                    <h3>Seleccionar menú o submenú</h3>
-                    <select
-                      value={tempMenuId}
-                      onChange={(e) => setTempMenuId(e.target.value)}
-                      className="modal-input"
-                    >
-                      <option value="">- Seleccionar sección -</option>
-                      {renderMenuSelect(sections)}
-                    </select>
+                  <label>Archivo actual:</label>
+                  <p>{currentFileName}</p>
 
-                    <label>Archivo actual:</label>
-                    <p>{currentFileName}</p>
+                  <label>Reemplazar archivo (opcional):</label>
+                  <input type="file" onChange={(e) => setTempFile(e.target.files?.[0] || null)} className="modal-input" />
 
-                    <label>Reemplazar archivo (opcional):</label>
-                    <input
-                      type="file"
-                      onChange={(e) => setTempFile(e.target.files ? e.target.files[0] : null)}
-                      className="modal-input"
-                    />
-
-
-                    <div className="modal-actions">
-                      <button className="cancel-btn" onClick={() => setModalType(null)}>
-                        Cancelar
-                      </button>
-                      <button className="save-btn" onClick={saveModalChanges}>
-                        Guardar
-                      </button>
-                    </div>
-                  </>
-                )}
-              </>
+                  <div className="modal-actions">
+                    <button className="cancel-btn" onClick={() => setModalType(null)}>Cancelar</button>
+                    <button className="save-btn" onClick={saveModalChanges}>Guardar</button>
+                  </div>
+                </>
+              )
             )}
           </div>
         </div>
