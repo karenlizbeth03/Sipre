@@ -57,6 +57,26 @@ const DocumentListPage: React.FC<Props> = ({
 
     return findMenu(sections) || menuId;
   };
+  const handleView = async (doc: Document) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/documents/view/${doc.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("No se pudo cargar el PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Aquí puedes abrir un modal o ventana nueva
+      window.open(url, "_blank");
+      // O si tienes un modal con DocumentViewer:
+      // setPreviewDoc({ ...doc, url });
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo cargar el PDF para vista previa");
+    }
+  };
 
   // 🔹 Descarga directa usando el endpoint existente /documents/view/{id}
   const handleDownload = async (doc: Document) => {
@@ -123,12 +143,12 @@ const DocumentListPage: React.FC<Props> = ({
 
                 <td>{new Date(doc.updatedAt).toLocaleString()}</td>
                 <td>
-                  {/* 👁️ Solo mostrar si es PDF */}
                   {doc.type.includes("pdf") && (
-                    <button onClick={() => onView(doc)} title="Ver">
+                    <button onClick={() => handleView(doc)} title="Ver">
                       <AiOutlineEye />
                     </button>
                   )}
+
 
 
                   <button onClick={() => onEdit(doc)} title="Editar">
