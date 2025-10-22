@@ -166,13 +166,17 @@ header .logo {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 25px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
+  background: #fff;
+  border-radius: 14px;
+  width: 94vw;       /* antes 88vw → más ancho */
+  max-width: 1600px; /* antes 1200px → más grande en pantallas grandes */
+  height: 94vh;      /* antes 88vh → más alto */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  position: relative;
 }
 
 @keyframes fadeIn {

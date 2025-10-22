@@ -346,33 +346,33 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         )}
       </main>
 
-      {previewDoc && (
-        <div className="modal-overlay" onClick={() => setPreviewDoc(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{previewDoc.name}</h3>
-              <div className="modal-actions">
-
-                <button
-                  className="close-btn"
-                  onClick={() => setPreviewDoc(null)}
-                  title="Cerrar"
-                >
-                  ✖
-                </button>
-              </div>
-            </div>
-
-            <DocumentViewer
-              document={{
-                id: previewDoc.id,
-                name: previewDoc.name,
-                url: `${API_BASE}/documents/view/${previewDoc.id}`,
-              }}
-            />
-          </div>
+     {previewDoc && (
+  <div className="modal-overlay dashboard-usuario-modal" onClick={() => setPreviewDoc(null)}>
+    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>{previewDoc.name}</h3>
+        <div className="modal-actions">
+          <button
+            className="close-btn"
+            onClick={() => setPreviewDoc(null)}
+            title="Cerrar"
+          >
+            ✖
+          </button>
         </div>
-      )}
+      </div>
+
+      <DocumentViewer
+        document={{
+          id: previewDoc.id,
+          name: previewDoc.name,
+          url: `${API_BASE}/documents/view/${previewDoc.id}`,
+        }}
+      />
+    </div>
+  </div>
+)}
+
 
 
 

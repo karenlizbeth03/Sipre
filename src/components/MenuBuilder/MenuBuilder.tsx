@@ -47,6 +47,8 @@ const MenuBuilder: React.FC = () => {
   const [showConfirmItemModal, setShowConfirmItemModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ sectionId: string; item: MenuItem } | null>(null);
 
+  const [editSectionId, setEditSectionId] = useState<string | null>(null);
+  const [editSectionName, setEditSectionName] = useState("");
 
   // Fetch inicial
   const fetchMenus = useCallback(async () => {
@@ -101,6 +103,33 @@ const MenuBuilder: React.FC = () => {
       await fetchMenus();
     } catch (err) {
       console.error("Error creando sección:", err);
+    }
+  };
+
+  const handleUpdateSection = async (sectionId: string) => {
+    if (!editSectionName.trim()) return;
+
+    try {
+      const token = localStorage.getItem("token") || "";
+      const payload = { name: editSectionName.trim() };
+
+      const res = await fetch(`${API_URL}/${sectionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Error al actualizar sección");
+
+      setEditSectionId(null);
+      setEditSectionName("");
+      await fetchMenus();
+    } catch (err) {
+      console.error("Error actualizando sección:", err);
     }
   };
 
@@ -373,20 +402,64 @@ const MenuBuilder: React.FC = () => {
             style={{ cursor: "pointer", userSelect: "none" }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>{section.name}</span>
+              {editSectionId === section.id ? (
+                <input
+                  type="text"
+                  value={editSectionName}
+                  onChange={(e) => setEditSectionName(e.target.value)}
+                  placeholder="Nuevo nombre de sección"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <span>{section.name}</span>
+              )}
+
               <span className={`arrow ${openSections.includes(section.id) ? "open" : ""}`}>
                 ▼
               </span>
             </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveSection(section.id);
-              }}
-            >
-              Eliminar Sección
-            </button>
+
+            <div className="menu-buttons" onClick={(e) => e.stopPropagation()}>
+              {editSectionId === section.id ? (
+                <>
+                  <button
+                    className="btn save"
+                    onClick={() => handleUpdateSection(section.id)}
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    className="btn cancel"
+                    onClick={() => {
+                      setEditSectionId(null);
+                      setEditSectionName("");
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="btn edit"
+                    onClick={() => {
+                      setEditSectionId(section.id);
+                      setEditSectionName(section.name);
+                    }}
+                  >
+                    <AiOutlineEdit /> Editar
+                  </button>
+                  <button
+                    className="btn delete"
+                    onClick={() => handleRemoveSection(section.id)}
+                  >
+                    <AiOutlineDelete /> Eliminar
+                  </button>
+                </>
+              )}
+            </div>
           </h3>
+
 
           {openSections.includes(section.id) &&
             renderMenuItems(section.items || [], section.id)}

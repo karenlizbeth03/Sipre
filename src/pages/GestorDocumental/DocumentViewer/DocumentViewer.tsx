@@ -76,7 +76,7 @@ const DocumentViewer: React.FC<Props> = ({ document, onClose }) => {
             title={document.name}
             className="pdf-frame"
             width="100%"
-            height="600px"
+            height="800px"
             style={{ border: "none" }}
           />
         )}

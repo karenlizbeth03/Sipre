@@ -139,7 +139,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
                 position: 'absolute',
                 right: 10,
                 top: '50%',
-                transform: 'translateY(-50%)',
+                transform: 'translateY(-0%)',
                 cursor: 'pointer',
                 color: '#666',
                 fontSize: '20px'

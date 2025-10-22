@@ -136,7 +136,14 @@
 
 .menu-buttons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
+}
+.menu-buttons .btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
 }
 
 /* ======= BOTONES ======= */
@@ -167,6 +174,7 @@
 }
 .btn.edit:hover {
   background: #3fa288;
+  color:#ffffff
 }
 
 .btn.delete {
@@ -175,6 +183,16 @@
 }
 .btn.delete:hover {
   background: #c54040;
+  color:#ffffff
+}
+.btn.save {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn.cancel {
+  background-color: #6c757d;
+  color: white;
 }
 
 /* ======= FORMULARIOS DE ITEM ======= */
