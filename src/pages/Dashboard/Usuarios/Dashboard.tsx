@@ -197,7 +197,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   return (
     <div className="dashboard-top-layout">
       <header className="dashboard-header">
-        <div className="logo">Usuarios</div>
+        <div className="logo">Gala Importaciones</div>
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>

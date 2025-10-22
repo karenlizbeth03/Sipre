@@ -257,7 +257,7 @@ const handleCreateUser = async () => {
   return (
     <div className="superadmin-dashboard">
       <header className="superadmin-header">
-        <h1>Panel Super Admin</h1>
+        <h1>Panel Super </h1>
         <button className="logout-btn" onClick={onLogout}>
           <AiOutlineLogout size={18} /> Cerrar sesión
         </button>
