@@ -28,7 +28,7 @@ const DocumentListPage: React.FC<Props> = ({
   onSectionChange,
 }) => {
   const [search, setSearch] = useState("");
-  const API_BASE = "http://192.168.1.3:3000";
+  const API_BASE = "http://192.168.2.160:3000";
 
   const filteredDocs = documents.filter((doc) =>
     doc.name?.toLowerCase().includes(search.toLowerCase())
@@ -60,7 +60,7 @@ const DocumentListPage: React.FC<Props> = ({
  const handleView = async (doc: Document) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await fetch(`http://192.168.1.3:3000/documents/view/${doc.id}`, {
+    const response = await fetch(`http://192.168.2.160:3000/documents/view/${doc.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

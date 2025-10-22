@@ -41,13 +41,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const [showLogin, setShowLogin] = useState(false);
 
 
-  const API_BASE = "http://192.168.1.3:3000";
+  const API_BASE = "http://192.168.2.160:3000";
   // 🔹 Carga inicial del menú
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         const token = localStorage.getItem("token"); // o donde lo guardes
-        const res = await fetch("http://192.168.1.3:3000/menus", {
+        const res = await fetch("http://192.168.2.160:3000/menus", {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
@@ -85,7 +85,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   const handleMenuClick = async (item: MenuItem) => {
     try {
       console.info(`Cargando documentos del menú: ${item.name} (${item.id})`);
-      console.log("URL solicitada:", `http://192.168.1.3:3000/documents/get-by-menu/${item.id}`);
+      console.log("URL solicitada:", `http://192.168.2.160:3000/documents/get-by-menu/${item.id}`);
 
       // evitar recargar si ya existen en cache
       if (menuDocs[item.id]) {
@@ -96,7 +96,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://192.168.1.3:3000/documents/get-by-menu/${item.id}`,
+        `http://192.168.2.160:3000/documents/get-by-menu/${item.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

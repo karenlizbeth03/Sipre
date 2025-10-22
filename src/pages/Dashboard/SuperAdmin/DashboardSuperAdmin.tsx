@@ -42,17 +42,23 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
 
   // Estados
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState("");
   const [emailExists, setEmailExists] = useState(false);
   const [ciExists, setCiExists] = useState(false);
   const [toast, setToast] = useState<{ type: string; message: string } | null>(null);
 
+  // Modales
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+
   const token = localStorage.getItem("token");
+  const API_URL = "http://192.168.2.160:3000";
 
   // ===== FETCH ROLES Y USERS =====
   const fetchRoles = async () => {
     try {
-      const res = await fetch("http://192.168.1.3:3000/roles", {
+      const res = await fetch(`${API_URL}/roles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -65,7 +71,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://192.168.1.3:3000/users", {
+      const res = await fetch(`${API_URL}/users`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -128,7 +134,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
     const timer = setTimeout(() => {
       try {
         const validateDuplicated = async () => {
-          const res = await fetch("http://192.168.1.3:3000/users", {
+          const res = await fetch(`${API_URL}/users`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await res.json();
@@ -146,14 +152,9 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
 
           if (emailDup) {
             setErrors((prev) => ({ ...prev, email: "El correo ya está registrado" }));
-          } else {
-            setErrors((prev) => ({ ...prev, email: "" }));
           }
-
           if (ciDup) {
             setErrors((prev) => ({ ...prev, ci: "La cédula ya está registrada" }));
-          } else {
-            setErrors((prev) => ({ ...prev, ci: "" }));
           }
         };
 
@@ -167,22 +168,16 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   }, [newUserEmail, newUserCi]);
 
   // ===== CÉDULA SOLO NÚMEROS =====
- const handleCiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  // Solo permitir números y máximo 10 dígitos
-  let value = e.target.value.replace(/\D/g, "").slice(0, 10);
-  setNewUserCi(value);
+  const handleCiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setNewUserCi(value);
 
-  // Validación inmediata
-  if (value.length !== 10) {
-    setErrors((prev) => ({
-      ...prev,
-      ci: "La cédula debe tener exactamente 10 números",
-    }));
-  } else {
-    setErrors((prev) => ({ ...prev, ci: "" }));
-  }
-};
-
+    if (value.length !== 10) {
+      setErrors((prev) => ({ ...prev, ci: "La cédula debe tener exactamente 10 números" }));
+    } else {
+      setErrors((prev) => ({ ...prev, ci: "" }));
+    }
+  };
 
   // ===== TOAST =====
   const showToast = (type: string, message: string) => {
@@ -191,164 +186,180 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   };
 
   // ===== CREAR USUARIO =====
-const handleCreateUser = async () => {
-  setSuccess("");
+  const handleCreateUser = async () => {
+    const allValid =
+      validateField("name", newUserName) &&
+      validateField("email", newUserEmail) &&
+      validateField("password", newUserPassword) &&
+      validateField("ci", newUserCi) &&
+      validateField("role", newUserRoleId);
 
-  const allValid =
-    validateField("name", newUserName) &&
-    validateField("email", newUserEmail) &&
-    validateField("password", newUserPassword) &&
-    validateField("ci", newUserCi) &&
-    validateField("role", newUserRoleId);
+    if (!allValid) return;
 
-  if (!allValid) return;
+    if (emailExists || ciExists) {
+      showToast("warning", "⚠️ El correo o la cédula ya existen.");
+      return;
+    }
 
-  if (emailExists || ciExists) {
-    if (emailExists) showToast("warning", "⚠️ El correo ya existe en el sistema.");
-    if (ciExists) showToast("warning", "⚠️ La cédula ya está registrada.");
-    return;
-  }
+    const body = {
+      name: newUserName.trim(),
+      email: newUserEmail.trim(),
+      password: newUserPassword.trim(),
+      ci: newUserCi.trim(),
+      role_id: newUserRoleId,
+    };
 
-  const body = {
-    name: newUserName.trim(),
-    email: newUserEmail.trim(),
-    password: newUserPassword.trim(),
-    ci: newUserCi.trim(),
-    role_id: newUserRoleId,
+    try {
+      const res = await fetch(`${API_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showToast("error", data.message || "❌ Error al crear usuario.");
+        return;
+      }
+
+      showToast("success", "✅ Usuario creado correctamente.");
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setNewUserCi("");
+      setNewUserRoleId("");
+      fetchUsers();
+    } catch {
+      showToast("error", "Error al conectar con el servidor.");
+    }
   };
 
-  console.log("📤 Enviando al backend:", body);
+  // ===== EDITAR DATOS USUARIO =====
+  const handleEditUser = async () => {
+    if (!editUser) return;
 
-  try {
-    const res = await fetch("http://192.168.1.3:3000/users", {
-      method: "POST",
+    const res = await fetch(`${API_URL}/users/${editUser.id}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        name: editUser.name,
+        email: editUser.email,
+        ci: editUser.ci,
+        role_id: editUser.role.id,
+      }),
     });
 
-    const data = await res.json();
-    console.log("📥 Respuesta backend:", data);
-
-    if (!res.ok) {
-      showToast("error", data.message || "❌ Error al crear usuario (422).");
-      return;
+    if (res.ok) {
+      showToast("success", "✅ Usuario actualizado.");
+      setShowEditModal(false);
+      fetchUsers();
+    } else {
+      showToast("error", "❌ Error al actualizar usuario.");
     }
+  };
 
-    showToast("success", "✅ Usuario creado correctamente.");
-    setNewUserName("");
-    setNewUserEmail("");
-    setNewUserPassword("");
-    setNewUserCi("");
-    setNewUserRoleId("");
-    setErrors({});
-    setEmailExists(false);
-    setCiExists(false);
-    fetchUsers();
-  } catch (error) {
-    console.error(error);
-    showToast("error", "❌ Error al conectar con el servidor.");
-  }
-};
+  // ===== ACTUALIZAR CONTRASEÑA =====
+  const handlePasswordChange = async () => {
+    if (!editUser) return;
 
+    const res = await fetch(`${API_URL}/users/${editUser.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
 
+    if (res.ok) {
+      showToast("success", "🔑 Contraseña actualizada.");
+      setShowPasswordModal(false);
+      setNewPassword("");
+    } else {
+      showToast("error", "❌ Error al actualizar la contraseña.");
+    }
+  };
+
+  // ===== ELIMINAR USUARIO =====
+  const handleDeleteUser = async (id: string) => {
+    if (!window.confirm("¿Deseas eliminar este usuario?")) return;
+
+    const res = await fetch(`${API_URL}/users/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      showToast("success", "🗑️ Usuario eliminado.");
+      fetchUsers();
+    } else {
+      showToast("error", "❌ No se pudo eliminar el usuario.");
+    }
+  };
+
+  // ===== RENDER =====
   return (
     <div className="superadmin-dashboard">
       <header className="superadmin-header">
-        <h1>Panel Super </h1>
+        <h1>Panel Super Admin</h1>
         <button className="logout-btn" onClick={onLogout}>
           <AiOutlineLogout size={18} /> Cerrar sesión
         </button>
       </header>
 
+      {/* Crear usuario */}
       <section className="superadmin-create-user">
         <h2>Crear nuevo usuario</h2>
 
         <div className="form-grid">
-          <div className="form-field">
-            <input
-              type="text"
-              placeholder="Nombre completo"
-              value={newUserName}
-              onChange={(e) => {
-                setNewUserName(e.target.value);
-                validateField("name", e.target.value);
-              }}
-              className={errors.name ? "error" : ""}
-            />
-            {errors.name && <span className="error-msg">{errors.name}</span>}
-          </div>
-
-          <div className="form-field">
-            <input
-              type="email"
-              placeholder="Correo electrónico"
-              value={newUserEmail}
-              onChange={(e) => {
-                setNewUserEmail(e.target.value);
-                validateField("email", e.target.value);
-              }}
-              className={errors.email ? "error" : ""}
-            />
-            {errors.email && <span className="error-msg">{errors.email}</span>}
-          </div>
-
-          <div className="form-field">
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={newUserPassword}
-              onChange={(e) => {
-                setNewUserPassword(e.target.value);
-                validateField("password", e.target.value);
-              }}
-              className={errors.password ? "error" : ""}
-            />
-            {errors.password && <span className="error-msg">{errors.password}</span>}
-          </div>
-
-          <div className="form-field">
-            <input
-              type="text"
-              placeholder="Cédula"
-              value={newUserCi}
-              onChange={handleCiChange}
-              className={errors.ci ? "error" : ""}
-            />
-            {errors.ci && <span className="error-msg">{errors.ci}</span>}
-          </div>
-
-          <div className="form-field">
-            <select
-              value={newUserRoleId}
-              onChange={(e) => {
-                setNewUserRoleId(e.target.value);
-                validateField("role", e.target.value);
-              }}
-              className={errors.role ? "error" : ""}
-            >
-              <option value="">Seleccione un rol</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-            {errors.role && <span className="error-msg">{errors.role}</span>}
-          </div>
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={newUserName}
+            onChange={(e) => setNewUserName(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            value={newUserEmail}
+            onChange={(e) => setNewUserEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={newUserPassword}
+            onChange={(e) => setNewUserPassword(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Cédula"
+            value={newUserCi}
+            onChange={handleCiChange}
+          />
+          <select value={newUserRoleId} onChange={(e) => setNewUserRoleId(e.target.value)}>
+            <option value="">Seleccione un rol</option>
+            {roles.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
 
           <button onClick={handleCreateUser}>Crear Usuario</button>
         </div>
       </section>
 
+      {/* Tabla de usuarios */}
       <section className="superadmin-users-list">
-        <h2>Usuarios existentes</h2>
+        <h2>Usuarios registrados</h2>
         {loading ? (
-          <p>Cargando usuarios...</p>
-        ) : users.length === 0 ? (
-          <p>No hay usuarios registrados.</p>
+          <p>Cargando...</p>
         ) : (
           <table>
             <thead>
@@ -366,16 +377,28 @@ const handleCreateUser = async () => {
                   <td>{u.ci}</td>
                   <td>{u.name}</td>
                   <td>{u.email}</td>
-                  <td>{u.role?.name || "Sin rol"}</td>
+                  <td>{u.role?.name}</td>
                   <td>
-                    <button className="icon-btn edit">
-                      <AiOutlineEdit size={18} />
+                    <button
+                      className="icon-btn edit"
+                      onClick={() => {
+                        setEditUser(u);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      <AiOutlineEdit />
                     </button>
-                    <button className="icon-btn key">
-                      <AiOutlineKey size={18} />
+                    <button
+                      className="icon-btn key"
+                      onClick={() => {
+                        setEditUser(u);
+                        setShowPasswordModal(true);
+                      }}
+                    >
+                      <AiOutlineKey />
                     </button>
-                    <button className="icon-btn delete">
-                      <AiOutlineDelete size={18} />
+                    <button className="icon-btn delete" onClick={() => handleDeleteUser(u.id)}>
+                      <AiOutlineDelete />
                     </button>
                   </td>
                 </tr>
@@ -384,6 +407,69 @@ const handleCreateUser = async () => {
           </table>
         )}
       </section>
+
+      {/* MODAL EDITAR */}
+      {showEditModal && editUser && (
+        <div className="superadmin-modal">
+          <div className="superadmin-modal-content">
+            <h3>Editar usuario</h3>
+            <input
+              type="text"
+              value={editUser.name}
+              onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
+            />
+            <input
+              type="email"
+              value={editUser.email}
+              onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+            />
+            <input
+              type="text"
+              value={editUser.ci}
+              onChange={(e) => setEditUser({ ...editUser, ci: e.target.value })}
+            />
+            <select
+              value={editUser.role?.id || ""}
+              onChange={(e) =>
+                setEditUser({
+                  ...editUser,
+                  role: { ...editUser.role, id: e.target.value },
+                })
+              }
+            >
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+            <div className="superadmin-modal-actions">
+              <button onClick={handleEditUser}>Guardar</button>
+              <button onClick={() => setShowEditModal(false)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONTRASEÑA */}
+      {showPasswordModal && (
+        <div className="superadmin-modal">
+          <div className="superadmin-modal-content">
+            <h3>Cambiar contraseña</h3>
+            <input
+              type="password"
+              placeholder="Nueva contraseña"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <div className="superadmin-modal-actions">
+              <button onClick={handlePasswordChange}>Actualizar</button>
+              <button onClick={() => setShowPasswordModal(false)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* TOAST */}
       {toast && (
