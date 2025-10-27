@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import './Login.css';
+import galaImg from '../../assets/GALA.png';
 
 export type UserRole = 'super-admin' | 'admin' | 'user';
 
 interface LoginProps {
   onLoginSuccess: (token: string, role: UserRole) => void;
-  onCancel?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [ci, setCi] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const API_URL = 'http://192.168.2.160:3000';
+  const API_URL = 'http://192.168.2.187:3000';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +25,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
     setError('');
 
     try {
-      // 1️⃣ LOGIN - autenticar usuario
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -36,18 +35,12 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
       });
 
       const loginData = await res.json();
+      if (!res.ok || !loginData.data) throw new Error(loginData.message || 'Credenciales inválidas');
 
-      if (!res.ok || !loginData.data) {
-        throw new Error(loginData.message || 'Credenciales inválidas');
-      }
-
-      // Guardar token
       const token = loginData.data;
       localStorage.setItem('token', token);
 
-      // 2️⃣ Obtener datos del usuario logueado
       const meRes = await fetch(`${API_URL}/auth/me`, {
-        method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -55,27 +48,17 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
       });
 
       const meData = await meRes.json();
+      if (!meRes.ok || !meData.data) throw new Error(meData.message || 'No se pudo obtener el usuario');
 
-      if (!meRes.ok || !meData.data) {
-        throw new Error(meData.message || 'No se pudo obtener información del usuario');
-      }
-
-      // 3️ Determinar el rol
       const roleName = meData.data.role?.name?.toLowerCase().trim() || 'user';
       let role: UserRole = 'user';
-
       if (roleName.includes('super')) role = 'super-admin';
       else if (roleName.includes('admin')) role = 'admin';
 
-
-      // Guardar rol también
       localStorage.setItem('role', role);
-
-      // 4️ Éxito → redirigir según rol
       onLoginSuccess(token, role);
 
     } catch (err: any) {
-      console.error('Error en login:', err);
       setError(err.message || 'Error de conexión con el servidor');
     } finally {
       setIsSubmitting(false);
@@ -83,28 +66,14 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
   };
 
   return (
-    <div className="login-overlay">
-      <div className="login-form" style={{ position: 'relative' }}>
-        {/* Botón de cerrar */}
-        <button
-          className="login-close-btn"
-          onClick={onCancel}
-          title="Cerrar"
-          style={{
-            position: 'absolute',
-            top: 18,
-            right: 18,
-            background: 'transparent',
-            border: 'none',
-            fontSize: 24,
-            cursor: 'pointer',
-            color: '#888'
-          }}
-        >
-          ×
-        </button>
+    <div className="login-page">
+      <div className="login-card">
 
-        <h2>Iniciar Sesión</h2>
+        <div className="login-logo">
+          <img src={galaImg} alt="" style={{ maxWidth: '200px', width: '100%', borderRadius: '12px' }} />
+        </div>
+       
+
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -122,7 +91,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
             />
           </div>
 
-          <div className="form-group" style={{ position: 'relative' }}>
+          <div className="form-group password-field">
             <label htmlFor="password">Contraseña</label>
             <input
               type={showPassword ? 'text' : 'password'}
@@ -131,19 +100,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onCancel }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{ paddingRight: '35px' }}
             />
             <span
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: 10,
-                top: '50%',
-                transform: 'translateY(-0%)',
-                cursor: 'pointer',
-                color: '#666',
-                fontSize: '20px'
-              }}
+              className="password-toggle"
             >
               {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
             </span>

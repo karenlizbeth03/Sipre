@@ -22,7 +22,7 @@ export interface Document {
   };
 }
 
-const API_BASE = "http://192.168.2.160:3000";
+const API_BASE = "http://192.168.2.187:3000";
 
 const DocumentManager: React.FC = () => {
   const { sections, setSections } = useMenu();

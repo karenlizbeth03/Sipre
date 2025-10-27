@@ -53,7 +53,7 @@ const DashboardSuperAdmin: React.FC<DashboardSuperAdminProps> = ({ onLogout }) =
   const [newPassword, setNewPassword] = useState("");
 
   const token = localStorage.getItem("token");
-  const API_URL = "http://192.168.2.160:3000";
+  const API_URL = "http://192.168.2.187:3000";
 
   // ===== FETCH ROLES Y USERS =====
   const fetchRoles = async () => {

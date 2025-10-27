@@ -3,6 +3,8 @@ import type { MenuOption, MenuItem, MenuSection, Document } from "../../../types
 import "./Dashboard.css";
 import Home from "../../../components/Home";
 import DocumentsPanel from "../../GestorDocumental/DocumentsPanel";
+import logo from "../../../assets/logo.png";
+
 import {
   AiOutlineFilePdf,
   AiOutlineFileWord,
@@ -10,11 +12,11 @@ import {
   AiOutlineFile,
   AiOutlineEye,
   AiOutlineDownload,
+  AiOutlineLogout
 } from "react-icons/ai";
 import DocumentViewer from "../../GestorDocumental/DocumentViewer/DocumentViewer";
 import Login from "../../../components/Login/Login";
 import { useNavigate } from "react-router-dom";
-
 
 interface DashboardUserProps {
   activeMenu: MenuOption;
@@ -32,22 +34,56 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
   setFilteredDocs,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [openchildren, setOpenchildren] = useState<Record<string, boolean>>({});
   const [menuDocs, setMenuDocs] = useState<Record<string, Document[]>>({});
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string }>({});
+  const navigate = useNavigate();
 
+  const API_BASE = "http://192.168.2.187:3000";
 
-  const API_BASE = "http://192.168.2.160:3000";
-  // 🔹 Carga inicial del menú
+  // 🔹 Carga del usuario autenticado
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setShowLogin(true);
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+
+        if (!res.ok) throw new Error("No se pudo obtener la información del usuario");
+
+        const result = await res.json();
+        setUser(result.data); // guarda los datos del usuario
+        setShowLogin(false);
+      } catch (err) {
+        console.error("❌ Error cargando usuario:", err);
+        setShowLogin(true);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // 🔹 Carga del menú
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const token = localStorage.getItem("token"); // o donde lo guardes
-        const res = await fetch("http://192.168.2.160:3000/menus", {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${API_BASE}/menus`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
@@ -81,13 +117,9 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     fetchMenu();
   }, []);
 
-  // 🔹 Cargar documentos de un menú específico
+  // 🔹 Cargar documentos por menú
   const handleMenuClick = async (item: MenuItem) => {
     try {
-      console.info(`Cargando documentos del menú: ${item.name} (${item.id})`);
-      console.log("URL solicitada:", `http://192.168.2.160:3000/documents/get-by-menu/${item.id}`);
-
-      // evitar recargar si ya existen en cache
       if (menuDocs[item.id]) {
         setFilteredDocs(menuDocs[item.id]);
         setActiveMenu(item.id as unknown as MenuOption);
@@ -95,33 +127,28 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
       }
 
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `http://192.168.2.160:3000/documents/get-by-menu/${item.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
+      const res = await fetch(`${API_BASE}/documents/get-by-menu/${item.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
 
       if (!res.ok) throw new Error("Error al cargar documentos por menú");
 
       const result = await res.json();
       const docsForMenu: Document[] = result.data || [];
 
-      // guardar cache local
       setMenuDocs((prev) => ({ ...prev, [item.id]: docsForMenu }));
-
       setFilteredDocs(docsForMenu);
       setActiveMenu(item.id as unknown as MenuOption);
-
-      console.info(` ${docsForMenu.length} documentos cargados para ${item.name}`);
     } catch (err) {
-      console.error(" Error cargando documentos por menú:", err);
+      console.error("❌ Error cargando documentos:", err);
       setFilteredDocs([]);
     }
   };
+
+  // 🔹 Vista previa PDF
   const handlePreview = async (doc: Document) => {
     try {
       const token = localStorage.getItem("token");
@@ -132,8 +159,7 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-
-      setPreviewDoc({ ...doc, url }); // reemplaza la URL por la blob URL
+      setPreviewDoc({ ...doc, url });
     } catch (err) {
       console.error(err);
       alert("No se pudo cargar el PDF para vista previa");
@@ -147,13 +173,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     }));
   };
 
-
   const handleLoginSuccess = (token: string) => {
+    localStorage.setItem("token", token);
     setShowLogin(false);
-    onLogout();
+    window.location.reload();
   };
 
-  // 🔹 Renderizado del menú lateral con documentos anidados
+  // 🔹 Render del menú lateral
   const renderMenu = (children: MenuItem[], level = 0) => (
     <ul className={`menu level-${level}`}>
       {children.map((item) => {
@@ -163,8 +189,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
         return (
           <li key={item.id}>
             <div
-              className={`menu-item ${item.children ? "has-children" : ""
-                } ${activeMenu === item.id ? "active" : ""}`}
+              className={`menu-item ${item.children ? "has-children" : ""} ${activeMenu === item.id ? "active" : ""
+                }`}
               onClick={() => {
                 toggleItem(item.id);
                 handleMenuClick(item);
@@ -185,8 +211,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
               </ul>
             )}
 
-
-            {/* Submenús */}
             {isOpen && item.children && renderMenu(item.children, level + 1)}
           </li>
         );
@@ -194,13 +218,32 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
     </ul>
   );
 
+  // 🔹 Si no hay usuario logueado → mostrar login
+  if (showLogin) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="dashboard-top-layout">
       <header className="dashboard-header">
-        <div className="logo">Gala Importaciones</div>
+        <div className="login-logo">
+          <img src={logo} alt="" style={{ maxWidth: '150px', width: '100%', borderRadius: '12px' }} />
+        </div>
+
+        <div className="user-info">
+          {user?.name ? (
+            <span>
+              👤 {user.name} {user.email ? `(${user.email})` : ""}
+            </span>
+          ) : (
+            <span>Cargando usuario...</span>
+          )}
+        </div>
+
         <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
           ☰
         </button>
+
         <nav className={`dashboard-nav ${menuOpen ? "open" : ""}`}>
           {sections.length === 0 ? (
             <p style={{ padding: "10px" }}></p>
@@ -234,14 +277,13 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                     )}
                   </div>
                 )}
-
               </div>
             ))
           )}
           <button className="logout-btn" onClick={onLogout}>
-            <center>Cerrar Sesión</center>
+            <AiOutlineLogout size={18} />
+            Cerrar Sesión
           </button>
-
 
         </nav>
       </header>
@@ -277,10 +319,8 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                   if (doc.type.includes("excel") || doc.type.includes("xls"))
                     FileIcon = AiOutlineFileExcel;
 
-                  // 🔹 URL actual del backend
                   const viewUrl = `${API_BASE}/documents/view/${doc.id}`;
 
-                  // 🔹 Función de descarga forzada
                   const handleDownload = async () => {
                     try {
                       const token = localStorage.getItem("token");
@@ -288,13 +328,14 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                         headers: { Authorization: `Bearer ${token}` },
                       });
 
-                      if (!response.ok) throw new Error("Error al descargar el documento");
+                      if (!response.ok)
+                        throw new Error("Error al descargar el documento");
 
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
                       const link = document.createElement("a");
                       link.href = url;
-                      link.download = doc.name; // nombre del archivo
+                      link.download = doc.name;
                       document.body.appendChild(link);
                       link.click();
                       link.remove();
@@ -314,7 +355,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                       <span className="doc-name">{doc.name}</span>
 
                       <div className="doc-actions">
-
                         {doc.type.includes("pdf") && (
                           <button
                             className="icon-btn"
@@ -323,7 +363,6 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                           >
                             <AiOutlineEye />
                           </button>
-
                         )}
 
                         <button
@@ -341,41 +380,39 @@ const DashboardUser: React.FC<DashboardUserProps> = ({
                 <p>No hay documentos en esta sección.</p>
               )}
             </ul>
-
           </div>
         )}
       </main>
 
-     {previewDoc && (
-  <div className="modal-overlay dashboard-usuario-modal" onClick={() => setPreviewDoc(null)}>
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      <div className="modal-header">
-        <h3>{previewDoc.name}</h3>
-        <div className="modal-actions">
-          <button
-            className="close-btn"
-            onClick={() => setPreviewDoc(null)}
-            title="Cerrar"
-          >
-            ✖
-          </button>
+      {previewDoc && (
+        <div
+          className="modal-overlay dashboard-usuario-modal"
+          onClick={() => setPreviewDoc(null)}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{previewDoc.name}</h3>
+              <div className="modal-actions">
+                <button
+                  className="close-btn"
+                  onClick={() => setPreviewDoc(null)}
+                  title="Cerrar"
+                >
+                  ✖
+                </button>
+              </div>
+            </div>
+
+            <DocumentViewer
+              document={{
+                id: previewDoc.id,
+                name: previewDoc.name,
+                url: `${API_BASE}/documents/view/${previewDoc.id}`,
+              }}
+            />
+          </div>
         </div>
-      </div>
-
-      <DocumentViewer
-        document={{
-          id: previewDoc.id,
-          name: previewDoc.name,
-          url: `${API_BASE}/documents/view/${previewDoc.id}`,
-        }}
-      />
-    </div>
-  </div>
-)}
-
-
-
-
+      )}
     </div>
   );
 };

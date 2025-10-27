@@ -1,95 +1,185 @@
-/* Fondo overlay semi-transparente */
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* oscuro transparente */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  height: 100vh;
+
+  /* Imagen de fondo */
+  background-image: url('../../assets/GalaEdificio.jpg');
+  background-size: cover;      /* ocupa toda la pantalla */
+  background-position: center; /* centrado */
+  background-repeat: no-repeat;
+
+  /* opcional: overlay oscuro para contraste */
+  position: relative;
 }
 
-/* Formulario central flotante */
-.login-form {
-  background: #fff;
-  padding: 2rem 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 400px;
-  animation: fadeIn 0.3s ease-in-out;
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(242, 242, 242, 0.8); /* capa negra semi-transparente sobre la imagen */
+  z-index: 0;
 }
 
-.login-form h2 {
+.login-card {
+  position: relative; /* para que esté sobre el overlay */
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.85); /* tarjetita semi-transparente */
+  border-radius: 20px;
+  padding: 50px 60px;
+  width: 400px;
   text-align: center;
-  margin-bottom: 1.5rem;
-  font-family: 'Segoe UI', sans-serif;
-  color: #333;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(251, 191, 36, 0.5);
 }
 
-/* Campos del formulario */
+
+/* --- CARD --- */
+.login-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 20px;
+  padding: 55px 65px;
+  width: 420px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.login-card:hover {
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px);
+}
+
+/* --- LOGO --- */
+.login-logo img {
+  width: 180px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* --- HEADER --- */
+.login-header {
+  margin-top: 5px;
+}
+
+.login-header h2 {
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.login-header p {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 25px;
+}
+
+/* --- FORM --- */
 .form-group {
-  margin-bottom: 1rem;
+  margin-top: 
+  20px;
+  margin-bottom: 15px;
+  text-align: left;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #555;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
 }
 
 .form-group input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
   font-size: 1rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .form-group input:focus {
-  border-color: #f97316;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
-  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* Botón de login */
-button[type="submit"] {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #f97316;
+/* --- PASSWORD --- */
+.password-field {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 42px;
+  font-size: 20px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #979694;
+}
+
+/* --- BUTTON --- */
+.login-page button {
+  background: #f97316;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s, transform 0.15s;
-  z-index: 10;
+  width: 100%;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.login-close-btn:hover {
-  color: #ff7f1a;
-  transform: scale(1.2);
+.login-page button:hover {
+  background: #f3963f;
+  transform: translateY(-2px);
 }
 
-/* Credenciales demo */
-.demo-credentials {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+/* --- ERROR --- */
+.login-error {
+  color: #b91c1c;
+  margin-top: 16px;
   font-size: 0.9rem;
-  text-align: center;
-  color: #444;
+  background: rgba(254, 226, 226, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
 }
 
-/* Animación de fade-in */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* --- RESPONSIVE --- */
+@media (max-width: 480px) {
+  .login-card {
+    width: 90%;
+    padding: 40px 30px;
+  }
+  .logo-text {
+    font-size: 1.3rem;
+  }
 }
